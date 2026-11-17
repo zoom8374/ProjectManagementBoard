@@ -1,0 +1,80 @@
+<UserControl x:Class="ProjectManagementBoard.Controls.ToolCardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:ProjectManagementBoard.Controls"
+             Foreground="{DynamicResource ThemeText}" Opacity="0"
+             RenderTransformOrigin="0.5,0.5" FocusVisualStyle="{x:Null}">
+    <UserControl.RenderTransform>
+        <TransformGroup>
+            <ScaleTransform x:Name="CardScale"/>
+            <RotateTransform x:Name="CardRotate"/>
+        </TransformGroup>
+    </UserControl.RenderTransform>
+
+    <Grid Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title above the card -->
+        <Grid Margin="6,0,2,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <c:EditableText x:Name="TitleLabel" Field="Title" Placeholder="새 관리 툴" Text="{Binding Title}"
+                            FontSize="20" FontWeight="SemiBold" MinWidth="80" HorizontalAlignment="Left"/>
+
+            <StackPanel x:Name="CardActions" Grid.Column="1" Orientation="Horizontal" Opacity="0">
+                <Button Style="{StaticResource IconButton}" ToolTip="카드 색상" Click="CardColor_Click">
+                    <Ellipse Width="13" Height="13" Fill="{Binding CardColor}" Stroke="White" StrokeThickness="1.5"/>
+                </Button>
+                <Button Style="{StaticResource IconButton}" Content="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                        ToolTip="관리 툴 복사 (Ctrl+C) · 붙여넣기는 Ctrl+V" Click="Copy_Click"/>
+                <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                        ToolTip="관리 툴 삭제" Click="Delete_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Shadow lives on its own layer so the card's content stays crisp.
+             Both layers get the per-card gradient from code (ApplyCardColor). -->
+        <Border x:Name="CardShadowLayer" Grid.Row="1" CornerRadius="20">
+            <Border.Effect>
+                <DropShadowEffect x:Name="CardShadow" Color="#050A18" Direction="270"
+                                  BlurRadius="18" ShadowDepth="5" Opacity="0.4"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- The card itself. DockHost is the empty area where a WinForms / WPF program will be docked later. -->
+        <Border x:Name="CardBody" Grid.Row="1" CornerRadius="20" BorderBrush="White" BorderThickness="3" ClipToBounds="True"
+                TextElement.Foreground="White">
+            <Border.Resources>
+                <ResourceDictionary Source="/ProjectManagementBoard;component/Themes/OnDark.xaml"/>
+            </Border.Resources>
+            <Grid>
+                <Border Margin="12" CornerRadius="12" Background="#26081230" BorderBrush="#4DFFFFFF" BorderThickness="1">
+                    <Grid x:Name="DockHost">
+                        <StackPanel x:Name="Placeholder" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False" Opacity="0.55">
+                            <TextBlock Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" FontSize="30" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="PlaceholderText" Text="프로그램을 도킹할 영역" FontSize="12" HorizontalAlignment="Center"
+                                       Margin="8,8,8,0" TextWrapping="Wrap" TextAlignment="Center"/>
+                        </StackPanel>
+                        <!-- The docked tool's view (stretches to the card) -->
+                        <c:ToolContentHost x:Name="ToolHost" CornerRadius="12" ClipToBounds="True"/>
+                    </Grid>
+                </Border>
+
+                <!-- Resize handle: bottom-right corner, visible on hover -->
+                <Grid x:Name="ResizeGrip" Width="22" Height="22" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                      Background="Transparent" Cursor="SizeNWSE" Opacity="0"
+                      MouseLeftButtonDown="ResizeGrip_MouseLeftButtonDown" MouseMove="ResizeGrip_MouseMove"
+                      MouseLeftButtonUp="ResizeGrip_MouseLeftButtonUp" LostMouseCapture="ResizeGrip_LostMouseCapture">
+                    <Path Data="M 17,5 L 5,17 M 17,11 L 11,17" Stroke="White" StrokeThickness="1.6"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" Margin="0,0,2,2"/>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

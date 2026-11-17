@@ -1,0 +1,12 @@
+<Project>
+
+  <!-- After every build, copy the tool into the board's Plugins\<ToolName>\ folder (what the board scans at startup). -->
+  <Target Name="CopyToBoard" AfterTargets="Build">
+    <ItemGroup>
+      <ToolFiles Include="$(OutDir)$(TargetName).dll;$(OutDir)$(TargetName).pdb" />
+    </ItemGroup>
+    <MakeDir Directories="$(BoardPluginsDir)" />
+    <Copy SourceFiles="@(ToolFiles)" DestinationFolder="$(BoardPluginsDir)" />
+  </Target>
+
+</Project>

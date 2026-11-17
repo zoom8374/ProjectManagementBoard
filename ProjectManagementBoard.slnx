@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Tools/">
+    <Project Path="Tools/CheckMemoTool/CheckMemoTool/CheckMemoTool.csproj" />
+    <Project Path="Tools/MemoTool/MemoTool/MemoTool.csproj" />
+  </Folder>
+  <Project Path="ProjectManagementBoard.Contracts/ProjectManagementBoard.Contracts.csproj" />
+  <Project Path="ProjectManagementBoard/ProjectManagementBoard.csproj" />
+</Solution>

@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- "On dark" colors: white text/overlays and the light accent tints. They are the app defaults (dark navy
+         background) and are re-merged locally on every surface that stays dark whatever the board color is (dialogs,
+         card bodies, zoom bar, toast, coach mark). With a light board, AppTheme (code) swaps the app-level copies of
+         these keys to ink/dark-amber versions; a scoped copy of this file keeps its surface on the white version.
+         Keys ending in a hex pair (Fg26 ...) are the text color at that alpha. -->
+    <SolidColorBrush x:Key="ThemeText" Color="White"/>
+    <SolidColorBrush x:Key="AccentYellow" Color="#FFD866"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#FFD866"/>
+    <SolidColorBrush x:Key="LevelHighBrush" Color="#8EF0A8"/>
+    <SolidColorBrush x:Key="LevelMidBrush" Color="#FFD866"/>
+    <SolidColorBrush x:Key="LevelLowBrush" Color="#FF9C8A"/>
+    <SolidColorBrush x:Key="LabelBrush" Color="#CFE0FF"/>
+    <SolidColorBrush x:Key="Fg0A" Color="#0AFFFFFF"/>
+    <SolidColorBrush x:Key="Fg14" Color="#14FFFFFF"/>
+    <SolidColorBrush x:Key="Fg1A" Color="#1AFFFFFF"/>
+    <SolidColorBrush x:Key="Fg1C" Color="#1CFFFFFF"/>
+    <SolidColorBrush x:Key="Fg22" Color="#22FFFFFF"/>
+    <SolidColorBrush x:Key="Fg26" Color="#26FFFFFF"/>
+    <SolidColorBrush x:Key="Fg30" Color="#30FFFFFF"/>
+    <SolidColorBrush x:Key="Fg33" Color="#33FFFFFF"/>
+    <SolidColorBrush x:Key="Fg38" Color="#38FFFFFF"/>
+    <SolidColorBrush x:Key="Fg40" Color="#40FFFFFF"/>
+    <SolidColorBrush x:Key="Fg4D" Color="#4DFFFFFF"/>
+    <SolidColorBrush x:Key="Fg55" Color="#55FFFFFF"/>
+    <SolidColorBrush x:Key="Fg66" Color="#66FFFFFF"/>
+    <SolidColorBrush x:Key="Fg99" Color="#99FFFFFF"/>
+    <SolidColorBrush x:Key="FgB3" Color="#B3FFFFFF"/>
+    <SolidColorBrush x:Key="FgCC" Color="#CCFFFFFF"/>
+    <SolidColorBrush x:Key="FgD0" Color="#D0FFFFFF"/>
+</ResourceDictionary>

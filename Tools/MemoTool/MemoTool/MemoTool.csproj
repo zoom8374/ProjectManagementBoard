@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- TargetFramework, UseWPF, the Contracts reference and the copy-to-Plugins step come from Tools\Directory.Build.props/.targets -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MemoTool</RootNamespace>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,424 @@
+﻿<Application x:Class="ProjectManagementBoard.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:ProjectManagementBoard"
+             xmlns:c="clr-namespace:ProjectManagementBoard.Controls"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="Themes/OnDark.xaml"/>
+        </ResourceDictionary.MergedDictionaries>
+
+        <!-- Palette (taken from the dark-navy board mockup) -->
+        <Color x:Key="AccentOrangeColor">#ED7D31</Color>
+        <!-- Design #15 palette: accent orange = actions/selection (fixed). The text/overlay/accent-tint brushes
+             (ThemeText, Fg##, AccentYellow, LevelHigh/Mid/Low, LabelBrush) live in Themes/OnDark.xaml and are swapped by
+             AppTheme when the board background is light. Their RGB values are mirrored by Palette (Controls/ColorUtil.cs). -->
+        <SolidColorBrush x:Key="AccentOrange" Color="{StaticResource AccentOrangeColor}"/>
+
+        <!-- Design #19: app logo (title bar + window/taskbar icon). An orange rounded tile holding an algorithm card:
+             description bar, two skill lines and a yellow completion line. 64x64 design grid, scales freely. -->
+        <DrawingImage x:Key="AppLogo">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <DrawingGroup.Children>
+                        <GeometryDrawing Geometry="M0,0 L64,0 L64,64 L0,64 Z" Brush="Transparent"/>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Brush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#F79A57" Offset="0"/>
+                                    <GradientStop Color="#E86F22" Offset="1"/>
+                                </LinearGradientBrush>
+                            </GeometryDrawing.Brush>
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry Rect="0,0,64,64" RadiusX="16" RadiusY="16"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="#26FFFFFF">
+                            <GeometryDrawing.Pen><Pen Brush="White" Thickness="3.2"/></GeometryDrawing.Pen>
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry Rect="14,15,36,34" RadiusX="8" RadiusY="8"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="White">
+                            <GeometryDrawing.Geometry><RectangleGeometry Rect="21,22,16,4" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="#B3FFFFFF">
+                            <GeometryDrawing.Geometry><RectangleGeometry Rect="21,30,22,3.4" RadiusX="1.7" RadiusY="1.7"/></GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="#B3FFFFFF">
+                            <GeometryDrawing.Geometry><RectangleGeometry Rect="21,36.5,16,3.4" RadiusX="1.7" RadiusY="1.7"/></GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="#FFE680">
+                            <GeometryDrawing.Geometry><RectangleGeometry Rect="21,43,22,3.4" RadiusX="1.7" RadiusY="1.7"/></GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingGroup.Children>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+
+        <!-- Subtle dot grid for the board -->
+        <DrawingBrush x:Key="DotGrid" TileMode="Tile" Viewport="0,0,26,26" ViewportUnits="Absolute"
+                      Viewbox="0,0,26,26" ViewboxUnits="Absolute" Stretch="None">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#01000000">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,26,26"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#1CFFFFFF">
+                        <GeometryDrawing.Geometry>
+                            <EllipseGeometry Center="13,13" RadiusX="1.1" RadiusY="1.1"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
+        <!-- Design #20: slim scrollbars everywhere (the default ones are light gray). Vertical and horizontal share
+             one thumb; a pages that needs different spacing re-styles ScrollBar with BasedOn this style. -->
+        <ControlTemplate x:Key="SlimThumb" TargetType="Thumb">
+            <Border x:Name="Bar" CornerRadius="4" Background="{DynamicResource Fg55}" Margin="1"/>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bar" Property="Background" Value="{DynamicResource Fg99}"/></Trigger>
+                <Trigger Property="IsDragging" Value="True"><Setter TargetName="Bar" Property="Background" Value="{DynamicResource FgCC}"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <ControlTemplate x:Key="SlimScrollBarV" TargetType="ScrollBar">
+            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                <Track.Thumb><Thumb Template="{StaticResource SlimThumb}"/></Track.Thumb>
+            </Track>
+        </ControlTemplate>
+        <ControlTemplate x:Key="SlimScrollBarH" TargetType="ScrollBar">
+            <Track x:Name="PART_Track">
+                <Track.Thumb><Thumb Template="{StaticResource SlimThumb}"/></Track.Thumb>
+            </Track>
+        </ControlTemplate>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="MinWidth" Value="8"/>
+            <Setter Property="Margin" Value="4,0,-6,0"/>
+            <Setter Property="Template" Value="{StaticResource SlimScrollBarV}"/>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="MinWidth" Value="0"/>
+                    <Setter Property="Height" Value="8"/>
+                    <Setter Property="MinHeight" Value="8"/>
+                    <Setter Property="Margin" Value="0,4,0,-6"/>
+                    <Setter Property="Template" Value="{StaticResource SlimScrollBarH}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Tooltips: a small dark-navy card with a hairline border, like the toast, instead of the pale system box -->
+        <Style TargetType="ToolTip">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HasDropShadow" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToolTip">
+                        <Border Background="#F2111D38" BorderBrush="{DynamicResource Fg40}" BorderThickness="1" CornerRadius="8"
+                                Padding="10,6">
+                            <ContentPresenter TextElement.Foreground="White"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Clickable title text; clicking opens the edit popup -->
+        <Style TargetType="c:EditableText">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeText}"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="c:EditableText">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <TextBlock Text="{TemplateBinding Text}" TextTrimming="CharacterEllipsis"
+                                           TextAlignment="{TemplateBinding TextAlignment}"/>
+                                <TextBlock x:Name="Placeholder" Text="{TemplateBinding Placeholder}" Opacity="0.45"
+                                           TextAlignment="{TemplateBinding TextAlignment}" Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Fg22}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Text box inside the edit popup -->
+        <Style x:Key="EditorField" TargetType="TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeText}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource ThemeText}"/>
+            <Setter Property="SelectionBrush" Value="{StaticResource AccentYellow}"/>
+            <Setter Property="SelectionOpacity" Value="0.35"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd" Background="#2A0B1530" BorderBrush="{DynamicResource Fg33}" BorderThickness="1.5"
+                                CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Fg66}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentOrange}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Left menu item: Tag = Segoe MDL2 glyph, Content = label. The selected look (sliding
+             highlight + bold label) is applied from MainWindow.SelectPage. -->
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeText}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Opacity" Value="0.7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="12" Padding="16,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" VerticalAlignment="Center"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <ContentPresenter Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Fg22}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Custom title bar buttons (Content = Segoe MDL2 glyph). They must be hit-testable inside the
+             WindowChrome caption area, hence IsHitTestVisibleInChrome. -->
+        <Style x:Key="CaptionButton" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeText}"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.85"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Fg22}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Fg38}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseCaptionButton" TargetType="Button" BasedOn="{StaticResource CaptionButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent">
+                            <ContentPresenter x:Name="Glyph" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.85"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E81123"/>
+                                <Setter TargetName="Glyph" Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#F1707A"/>
+                                <Setter TargetName="Glyph" Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Round icon button (✕ etc.) -->
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeText}"/>
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="13">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Fg22}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Fg38}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Low-emphasis text button -->
+        <!-- Action tile (left panel: new / open project): dashed outline, icon over label. The dashed outline is what
+             separates "actions" from the solid project rows below them. Content = label; Tag = Segoe MDL2 glyph. -->
+        <Style x:Key="ActionTile" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeText}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Rectangle x:Name="Outline" RadiusX="12" RadiusY="12" StrokeThickness="1.2" StrokeDashArray="3 3"
+                                       Stroke="{DynamicResource Fg55}" Fill="Transparent"/>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4,10">
+                                <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                           FontFamily="Segoe MDL2 Assets" FontSize="17" HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentOrange}"/>
+                                <ContentPresenter HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Outline" Property="Stroke" Value="{DynamicResource Fg99}"/>
+                                <Setter TargetName="Outline" Property="Fill" Value="{DynamicResource Fg14}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Outline" Property="Fill" Value="{DynamicResource Fg22}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GhostButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource FgD0}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Fg22}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Fg38}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Primary pill button with a springy press -->
+        <Style x:Key="PillButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{StaticResource AccentOrange}" CornerRadius="19" Padding="20,9">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#050A18" BlurRadius="14" ShadowDepth="3" Direction="270" Opacity="0.4"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#F39456"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.94" Duration="0:0:0.08"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.94" Duration="0:0:0.08"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.35">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ElasticEase Oscillations="1" Springiness="5"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.35">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ElasticEase Oscillations="1" Springiness="5"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+            </ResourceDictionary>
+    </Application.Resources>
+</Application>

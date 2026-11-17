@@ -1,0 +1,205 @@
+<UserControl x:Class="ProjectManagementBoard.Controls.EditorOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:ProjectManagementBoard.Controls"
+             Visibility="Collapsed" Foreground="White">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/ProjectManagementBoard;component/Themes/OnDark.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <c:EqualsConverter x:Key="EqualsConverter"/>
+            <c:ChoiceBrushConverter x:Key="ChoiceBrush"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Border x:Name="Backdrop" Background="#A6060C1E" MouseLeftButtonDown="Backdrop_MouseLeftButtonDown"/>
+
+        <Grid x:Name="DialogRoot" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"
+              RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="DialogScale"/>
+                    <TranslateTransform x:Name="DialogShift"/>
+                </TransformGroup>
+            </Grid.RenderTransform>
+
+            <!-- Shadow on its own layer so dialog text stays crisp -->
+            <Border x:Name="DialogShadowLayer" CornerRadius="20">
+                <Border.Effect>
+                    <DropShadowEffect Color="#050A18" BlurRadius="44" ShadowDepth="16" Direction="270" Opacity="0.6"/>
+                </Border.Effect>
+            </Border>
+
+            <Border x:Name="DialogBody" CornerRadius="20" BorderBrush="#66FFFFFF" BorderThickness="1.5"
+                    Padding="26,22,22,20">
+                <StackPanel>
+                    <TextBlock x:Name="HeadingText" FontSize="18" FontWeight="SemiBold"/>
+                    <Border Width="36" Height="3" CornerRadius="1.5" HorizontalAlignment="Left"
+                            Background="{StaticResource AccentOrange}" Margin="1,10,0,18"/>
+                    <TextBlock x:Name="MessageText" FontSize="14" TextWrapping="Wrap" Opacity="0.9"
+                               Margin="1,-4,0,18" Visibility="Collapsed"/>
+
+                    <ItemsControl x:Name="FieldList" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,14">
+                                    <TextBlock Text="{Binding Label}" FontSize="12" Opacity="0.7" Margin="2,0,0,6"/>
+
+                                    <!-- Color fields: swatches -->
+                                    <ItemsControl x:Name="Swatches" ItemsSource="{Binding Swatches}" Visibility="Collapsed"
+                                                  Focusable="False" Margin="0,2,0,8">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Click="Swatch_Click" Cursor="Hand" Margin="0,0,6,6"
+                                                        FocusVisualStyle="{x:Null}" Focusable="False" ToolTip="{Binding}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="Ring" Width="34" Height="34" CornerRadius="17"
+                                                                    BorderThickness="2" BorderBrush="Transparent" Padding="3"
+                                                                    Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                                                                <Border.RenderTransform>
+                                                                    <ScaleTransform/>
+                                                                </Border.RenderTransform>
+                                                                <Ellipse Fill="{Binding}" Stroke="#30FFFFFF" StrokeThickness="1"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <DataTrigger Value="True">
+                                                                    <DataTrigger.Binding>
+                                                                        <MultiBinding Converter="{StaticResource EqualsConverter}">
+                                                                            <Binding/>
+                                                                            <Binding Path="DataContext.Value"
+                                                                                     RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                                                                        </MultiBinding>
+                                                                    </DataTrigger.Binding>
+                                                                    <Setter TargetName="Ring" Property="BorderBrush" Value="White"/>
+                                                                </DataTrigger>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Trigger.EnterActions>
+                                                                        <BeginStoryboard>
+                                                                            <Storyboard>
+                                                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.14" Duration="0:0:0.15"/>
+                                                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.14" Duration="0:0:0.15"/>
+                                                                            </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </Trigger.EnterActions>
+                                                                    <Trigger.ExitActions>
+                                                                        <BeginStoryboard>
+                                                                            <Storyboard>
+                                                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.25"/>
+                                                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.25"/>
+                                                                            </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </Trigger.ExitActions>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!-- Choice fields: select buttons (the picked option is filled) -->
+                                    <ItemsControl x:Name="Options" ItemsSource="{Binding Options}" Visibility="Collapsed"
+                                                  Focusable="False" Margin="0,0,0,2">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Click="Choice_Click" Cursor="Hand" Margin="0,0,8,0"
+                                                        FocusVisualStyle="{x:Null}" Focusable="False">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <!-- Picked: filled with the option's own color; otherwise faint with colored text -->
+                                                            <Border x:Name="Pill" CornerRadius="12" Padding="22,8" MinWidth="64"
+                                                                    BorderBrush="#33FFFFFF" BorderThickness="1">
+                                                                <Border.Background>
+                                                                    <MultiBinding Converter="{StaticResource ChoiceBrush}" ConverterParameter="bg">
+                                                                        <Binding/>
+                                                                        <Binding Path="DataContext.Value"
+                                                                                 RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                                                                    </MultiBinding>
+                                                                </Border.Background>
+                                                                <TextBlock Text="{Binding}" FontSize="14" FontWeight="SemiBold"
+                                                                           HorizontalAlignment="Center">
+                                                                    <TextBlock.Foreground>
+                                                                        <MultiBinding Converter="{StaticResource ChoiceBrush}" ConverterParameter="fg">
+                                                                            <Binding/>
+                                                                            <Binding Path="DataContext.Value"
+                                                                                     RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                                                                        </MultiBinding>
+                                                                    </TextBlock.Foreground>
+                                                                </TextBlock>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="Pill" Property="BorderBrush" Value="White"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <Grid x:Name="TextRow">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <!-- Color fields: live preview chip next to the hex box -->
+                                        <Border x:Name="Chip" Width="38" CornerRadius="12" Margin="0,0,10,0"
+                                                BorderBrush="#55FFFFFF" BorderThickness="1.5" Visibility="Collapsed"
+                                                Background="{Binding Value}"/>
+                                        <TextBox Grid.Column="1" Style="{StaticResource EditorField}"
+                                                 Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <!-- Path fields: file/folder picker -->
+                                        <Button x:Name="BrowseButton" Grid.Column="2" Style="{StaticResource GhostButton}"
+                                                Content="찾기" Margin="8,0,0,0" Click="Browse_Click" Focusable="False"
+                                                Visibility="Collapsed"/>
+                                    </Grid>
+                                </StackPanel>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Kind}" Value="Color">
+                                        <Setter TargetName="Swatches" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="Chip" Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Kind}" Value="Choice">
+                                        <Setter TargetName="Options" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="TextRow" Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Kind}" Value="Path">
+                                        <Setter TargetName="BrowseButton" Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <DockPanel Margin="0,6,0,0" LastChildFill="False">
+                        <TextBlock x:Name="HintText" DockPanel.Dock="Left" FontSize="11" Opacity="0.45"
+                                   VerticalAlignment="Center"/>
+                        <Button x:Name="SaveButton" DockPanel.Dock="Right" Style="{StaticResource PillButton}" Content="저장"
+                                Click="Save_Click"/>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="취소"
+                                Margin="0,0,8,0" Click="Cancel_Click"/>
+                        <!-- Optional third choice, e.g. "저장 안 함" when closing with unsaved changes -->
+                        <Button x:Name="DiscardButton" DockPanel.Dock="Right" Style="{StaticResource GhostButton}"
+                                Margin="0,0,4,0" Visibility="Collapsed" Click="Discard_Click"/>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

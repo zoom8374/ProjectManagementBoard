@@ -1,0 +1,29 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Builds the board, the contract and every tool under Tools\ (tools copy themselves into Plugins\)
+      - name: Build
+        run: dotnet build ProjectManagementBoard.slnx -c Release
+
+      - name: Check that every tool landed in Plugins
+        shell: pwsh
+        run: |
+          $plugins = "ProjectManagementBoard/bin/Release/net10.0-windows/Plugins"
+          $expected = Get-ChildItem Tools -Directory | ForEach-Object { $_.Name }
+          foreach ($name in $expected) {
+            if (-not (Test-Path "$plugins/$name/$name.dll")) { throw "Tool '$name' was not copied to $plugins" }
+          }

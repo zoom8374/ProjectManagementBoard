@@ -1,0 +1,19 @@
+# Build output (the board's Plugins\ folder lives under bin\, so tool DLLs are never committed)
+[Bb]in/
+[Oo]bj/
+*.tmp
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userprefs
+
+# Local tooling
+.claude/settings.local.json
+
+# Local test projects and scratch
+*.local.pmb
+scratch/

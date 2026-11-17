@@ -1,0 +1,416 @@
+<UserControl x:Class="CheckMemoTool.Views.ChecklistView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:CheckMemoTool.Views"
+             UseLayoutRounding="True"
+             FontFamily="Segoe UI, Malgun Gothic"
+             PreviewKeyDown="Window_PreviewKeyDown"
+             PreviewMouseMove="Window_PreviewMouseMove"
+             PreviewMouseLeftButtonUp="Window_PreviewMouseLeftButtonUp">
+
+    <UserControl.Resources>
+        <v:PriorityRowBrushConverter x:Key="RowBrush" />
+        <v:PriorityDotBrushConverter x:Key="DotFill" />
+        <v:PriorityDotStrokeConverter x:Key="DotStroke" />
+        <v:PointToDipConverter x:Key="PtToDip" />
+        <v:BoolToVisibilityConverter x:Key="BoolVis" />
+        <v:BoolToVisibilityConverter x:Key="InverseBoolVis" Invert="True" />
+
+        <ControlTemplate x:Key="ChecklistThumb" TargetType="Thumb">
+            <Border x:Name="Bar" CornerRadius="3" Background="#44000000" Margin="1" />
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bar" Property="Background" Value="#77000000" /></Trigger>
+                <Trigger Property="IsDragging" Value="True"><Setter TargetName="Bar" Property="Background" Value="#99000000" /></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="MinWidth" Value="8" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Track x:Name="PART_Track" IsDirectionReversed="True">
+                            <Track.Thumb><Thumb Template="{StaticResource ChecklistThumb}" /></Track.Thumb>
+                        </Track>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <SolidColorBrush x:Key="InkBrush" Color="#2B2B2B" />
+        <SolidColorBrush x:Key="QuietBrush" Color="#8A8A8A" />
+        <SolidColorBrush x:Key="LineBrush" Color="#14000000" />
+        <SolidColorBrush x:Key="HoverBrush" Color="#12000000" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#4A6FA5" />
+        <SolidColorBrush x:Key="DangerBrush" Color="#D93025" />
+
+        <!-- 제목 줄·항목의 작은 버튼 -->
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource QuietBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#26000000" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- '모두 삭제' 같은 글자 버튼 -->
+        <Style x:Key="TextButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource QuietBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Padding" Value="6,2" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ⋯ 메뉴 안의 줄 단위 버튼 -->
+        <Style x:Key="MenuRowButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 체크박스 모양 버튼 (F-06) -->
+        <Style x:Key="CheckButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent" Width="24" Height="24">
+                            <Border x:Name="Box" Width="16" Height="16" CornerRadius="3"
+                                    BorderBrush="{StaticResource QuietBrush}" BorderThickness="1.25" Background="Transparent" />
+                            <Path x:Name="Check" Data="M 4.5,8.5 L 7,11 L 11.5,5.5" Stroke="White" StrokeThickness="1.8"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Width="16" Height="16" Visibility="Collapsed" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource InkBrush}" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsDone}" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="Box" Property="Opacity" Value="0.75" />
+                                <Setter TargetName="Check" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 중요도 동그라미 (F-20) -->
+        <Style x:Key="DotButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="ToolTip" Value="중요도" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="4" Width="22" Height="22">
+                            <Ellipse Width="11" Height="11" StrokeThickness="1.5"
+                                     Fill="{Binding Priority, Converter={StaticResource DotFill}}"
+                                     Stroke="{Binding Priority, Converter={StaticResource DotStroke}}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 중요도 선택 창의 선택지 -->
+        <Style x:Key="PriorityOption" TargetType="Button" BasedOn="{StaticResource MenuRowButton}">
+            <Setter Property="Padding" Value="8,5" />
+        </Style>
+
+        <Style x:Key="PopupPanel" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#22000000" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="4" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.18" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="EditBox" TargetType="TextBox">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="#F2FFFFFF" />
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+            <Setter Property="Padding" Value="2,2" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="AcceptsReturn" Value="False" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <!-- 항목 한 줄 -->
+        <DataTemplate x:Key="ItemTemplate">
+            <Grid x:Name="Row" Background="Transparent" Margin="0,1" Focusable="True" FocusVisualStyle="{x:Null}"
+                  KeyDown="Row_KeyDown" MouseLeftButtonDown="Row_MouseLeftButtonDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="14" />
+                </Grid.ColumnDefinitions>
+
+                <!-- 중요도 배경 (글자 뒤를 흐리게 채움) -->
+                <Border x:Name="Band" Grid.Column="1" Grid.ColumnSpan="4" CornerRadius="6"
+                        BorderThickness="1" BorderBrush="Transparent">
+                    <Border.Background>
+                        <MultiBinding Converter="{StaticResource RowBrush}">
+                            <Binding Path="Priority" />
+                            <Binding Path="IsDone" />
+                        </MultiBinding>
+                    </Border.Background>
+                </Border>
+
+                <!-- 드래그 핸들 (마우스를 올리면 맨 오른쪽에 표시) -->
+                <Border x:Name="Handle" Grid.Column="4" Background="Transparent" Cursor="SizeAll" Visibility="Hidden"
+                        ToolTip="드래그해서 순서 변경" PreviewMouseLeftButtonDown="Handle_PreviewMouseLeftButtonDown">
+                    <TextBlock Text="⋮" Foreground="{StaticResource QuietBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+
+                <Button Grid.Column="0" Style="{StaticResource CheckButton}" VerticalAlignment="Center"
+                        Command="{Binding DataContext.ToggleDoneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}" />
+
+                <TextBlock x:Name="ItemText" Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap"
+                           Foreground="{StaticResource InkBrush}" Margin="8,5,4,5" VerticalAlignment="Center" />
+
+                <TextBox x:Name="EditBox" Grid.Column="1" Grid.ColumnSpan="4" Margin="4,2" Style="{StaticResource EditBox}"
+                         Text="{Binding EditText, UpdateSourceTrigger=PropertyChanged}" Visibility="Collapsed"
+                         KeyDown="EditBox_KeyDown" LostKeyboardFocus="EditBox_LostKeyboardFocus" />
+
+                <Button x:Name="DotButton" Grid.Column="2" Style="{StaticResource DotButton}" VerticalAlignment="Center"
+                        Visibility="Hidden" Click="Dot_Click" />
+
+                <Button x:Name="DeleteButton" Grid.Column="3" Style="{StaticResource IconButton}" Content="×" ToolTip="삭제"
+                        VerticalAlignment="Center" Visibility="Hidden"
+                        Command="{Binding DataContext.DeleteItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}" />
+            </Grid>
+
+            <DataTemplate.Triggers>
+                <!-- 마우스를 올리면 중요도 동그라미·× 표시 -->
+                <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="DotButton" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible" />
+                </Trigger>
+                <!-- 드래그 핸들은 미완료 항목에만 -->
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsMouseOver, ElementName=Row}" Value="True" />
+                        <Condition Binding="{Binding IsDone}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter TargetName="Handle" Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+                <!-- 키보드 선택 표시 -->
+                <Trigger SourceName="Row" Property="IsKeyboardFocused" Value="True">
+                    <Setter TargetName="Band" Property="BorderBrush" Value="#40000000" />
+                </Trigger>
+                <!-- 완료: 취소선 + 흐린 글자 -->
+                <DataTrigger Binding="{Binding IsDone}" Value="True">
+                    <Setter TargetName="ItemText" Property="TextDecorations" Value="Strikethrough" />
+                    <Setter TargetName="ItemText" Property="Foreground" Value="{StaticResource QuietBrush}" />
+                </DataTrigger>
+                <!-- 편집 중 -->
+                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                    <Setter TargetName="ItemText" Property="Visibility" Value="Hidden" />
+                    <Setter TargetName="EditBox" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="DotButton" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="DeleteButton" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="Handle" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid x:Name="RootGrid" TextElement.Foreground="{StaticResource InkBrush}"
+          TextElement.FontSize="{Binding Settings.FontSize, Converter={StaticResource PtToDip}}">
+
+        <!-- White sheet filling the card's dock area -->
+        <Border x:Name="BackPanel" CornerRadius="12" Background="White" />
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header: open-item count and the font-size menu (the title lives on the card itself) -->
+            <Grid Grid.Row="0" Margin="14,6,6,4" MinHeight="28">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding OpenItems.Count, StringFormat='할 일 {0}'}" FontWeight="SemiBold"
+                           Foreground="{StaticResource QuietBrush}" VerticalAlignment="Center"
+                           FontSize="{Binding Settings.FontSize, Converter={StaticResource PtToDip}, ConverterParameter=-1}" />
+                <Button Grid.Column="1" Style="{StaticResource IconButton}" Content="⋯" ToolTip="글자 크기" Click="Menu_Click" />
+            </Grid>
+
+            <Border Grid.Row="1" Height="1" Background="{StaticResource LineBrush}" />
+
+            <!-- 항목 영역 -->
+            <ScrollViewer x:Name="Scroller" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          Focusable="False">
+                <!-- VerticalAlignment=Top: 내용이 줄어들면 실제 높이도 줄어들도록 (창 자동 축소) -->
+                <StackPanel x:Name="ContentPanel" Margin="4,4,6,4" VerticalAlignment="Top">
+                    <ItemsControl x:Name="OpenList" ItemsSource="{Binding OpenItems}" ItemTemplate="{StaticResource ItemTemplate}"
+                                  Focusable="False" AllowDrop="True" Background="Transparent"
+                                  DragOver="OpenList_DragOver" DragLeave="OpenList_DragLeave" Drop="OpenList_Drop" />
+
+                    <StackPanel Visibility="{Binding HasDone, Converter={StaticResource BoolVis}}">
+                        <Border Height="1" Background="{StaticResource LineBrush}" Margin="-4,8,-6,6" />
+                        <Grid Margin="34,0,2,2">
+                            <TextBlock Text="{Binding DoneCount, StringFormat='완료 {0}'}" FontWeight="SemiBold"
+                                       Foreground="{StaticResource QuietBrush}" VerticalAlignment="Center"
+                                       FontSize="{Binding Settings.FontSize, Converter={StaticResource PtToDip}, ConverterParameter=-2}" />
+                            <Button HorizontalAlignment="Right" Style="{StaticResource TextButton}" Content="모두 삭제"
+                                    FontSize="{Binding Settings.FontSize, Converter={StaticResource PtToDip}, ConverterParameter=-2}"
+                                    Click="ClearDone_Click" />
+                        </Grid>
+                        <ItemsControl x:Name="DoneList" ItemsSource="{Binding DoneItems}" ItemTemplate="{StaticResource ItemTemplate}"
+                                      Focusable="False" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 입력란: Enter로 추가 (F-04) -->
+            <Border Grid.Row="3" Margin="10,4,10,10" CornerRadius="6" BorderBrush="#26000000" BorderThickness="1" Background="#0A000000">
+                <Grid>
+                    <TextBox x:Name="InputBox" BorderThickness="0" Background="Transparent" Foreground="{StaticResource InkBrush}"
+                             Padding="6,5" VerticalContentAlignment="Center" KeyDown="InputBox_KeyDown" />
+                    <TextBlock Text="할 일 입력 후 Enter" Foreground="{StaticResource QuietBrush}" Margin="10,0" VerticalAlignment="Center"
+                               IsHitTestVisible="False"
+                               FontSize="{Binding Settings.FontSize, Converter={StaticResource PtToDip}, ConverterParameter=-1}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=InputBox}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ⋯ 메뉴 -->
+        <Popup x:Name="MenuPopup" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade" Placement="Relative">
+            <Border Style="{StaticResource PopupPanel}" Width="190" TextElement.FontSize="13" TextElement.Foreground="{StaticResource InkBrush}">
+                <StackPanel>
+                    <Grid Margin="10,4,4,4">
+                        <TextBlock Text="글자 크기" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource IconButton}" Content="−" ToolTip="작게 (Ctrl+-)" Click="FontDown_Click" />
+                            <TextBlock Width="40" TextAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource QuietBrush}"
+                                       Text="{Binding Settings.FontSize, StringFormat={}{0}pt}" />
+                            <Button Style="{StaticResource IconButton}" Content="+" ToolTip="크게 (Ctrl++)" Click="FontUp_Click" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- 중요도 선택 창 (F-20) -->
+        <Popup x:Name="PriorityPopup" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade" Placement="Bottom">
+            <Border Style="{StaticResource PopupPanel}" TextElement.FontSize="13" TextElement.Foreground="{StaticResource InkBrush}">
+                <StackPanel Orientation="Horizontal">
+                    <Button Style="{StaticResource PriorityOption}" Tag="high" Click="PriorityOption_Click" ToolTip="상">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="11" Height="11" Fill="#E53935" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <TextBlock Text="상" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource PriorityOption}" Tag="medium" Click="PriorityOption_Click" ToolTip="중">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="11" Height="11" Fill="#FB8C00" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <TextBlock Text="중" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource PriorityOption}" Tag="low" Click="PriorityOption_Click" ToolTip="하">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="11" Height="11" Fill="#43A047" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <TextBlock Text="하" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource PriorityOption}" Tag="none" Click="PriorityOption_Click" ToolTip="없음">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="11" Height="11" Stroke="#9A9A9A" StrokeThickness="1.5" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <TextBlock Text="없음" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

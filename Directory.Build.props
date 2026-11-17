@@ -1,0 +1,10 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Repository root (with trailing slash): lets every project find the others without ..\..\ chains. -->
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <!-- Where the board's exe is built; tools copy themselves into its Plugins folder. -->
+    <BoardOutDir>$(RepoRoot)ProjectManagementBoard\bin\$(Configuration)\net10.0-windows\</BoardOutDir>
+  </PropertyGroup>
+
+</Project>

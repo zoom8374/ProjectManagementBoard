@@ -1,0 +1,20 @@
+<Project>
+
+  <!-- Keep the repo-wide settings (RepoRoot, BoardOutDir) -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <!-- Defaults shared by every tool project under Tools\ : a WPF class library docked into the board in-process. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- Overridable: /p:BoardPluginsDir=... -->
+    <BoardPluginsDir Condition="'$(BoardPluginsDir)' == ''">$(BoardOutDir)Plugins\$(MSBuildProjectName)\</BoardPluginsDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The contract comes from this repo. Private=false keeps a second copy of the contract DLL out of the tool's output:
+         two copies would make IBoardTool a different type and the board would not recognize the tool. -->
+    <ProjectReference Include="$(RepoRoot)ProjectManagementBoard.Contracts\ProjectManagementBoard.Contracts.csproj" Private="false" />
+  </ItemGroup>
+
+</Project>

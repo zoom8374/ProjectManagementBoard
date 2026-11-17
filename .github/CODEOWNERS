@@ -1,0 +1,11 @@
+# Who must review changes to each area (GitHub requires the owner's approval when
+# "Require review from Code Owners" is on for the main branch).
+# Replace the placeholders with real GitHub user names or teams, then uncomment.
+#
+# The contract is shared by the board and every tool: changes need the board owner's review.
+# /ProjectManagementBoard.Contracts/    @board-owner
+# /ProjectManagementBoard/              @board-owner
+#
+# One owner per tool:
+# /Tools/MemoTool/                      @memo-owner
+# /Tools/CheckMemoTool/                 @checkmemo-owner

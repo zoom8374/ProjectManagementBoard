@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- WinForms is enabled so a Windows Forms program can later be docked into a card (WindowsFormsHost). -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>ProjectManagementBoard</RootNamespace>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ProjectManagementBoard.Contracts\ProjectManagementBoard.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Keep WPF types unambiguous: WinForms/System.Drawing implicit usings would clash with WPF names (Color, Control, ...). -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!-- Tool DLLs are dropped into Plugins\<ToolName>\ next to the exe. -->
+  <Target Name="EnsurePluginsFolder" AfterTargets="Build">
+    <MakeDir Directories="$(OutDir)Plugins" />
+  </Target>
+
+</Project>
