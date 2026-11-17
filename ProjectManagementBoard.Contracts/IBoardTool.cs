@@ -34,4 +34,14 @@ namespace ProjectManagementBoard.Contracts
         /// <summary>Restores what <see cref="SaveState"/> returned. Called once, right after creation, only when a saved state exists.</summary>
         void LoadState(string state);
     }
+
+    /// <summary>
+    /// Optional, implemented next to <see cref="IBoardTool"/>: the size (board units, title row included) of a newly
+    /// added card for this tool. Without it the board uses its default card size.
+    /// </summary>
+    public interface IBoardToolDefaultSize
+    {
+        double DefaultWidth { get; }
+        double DefaultHeight { get; }
+    }
 }

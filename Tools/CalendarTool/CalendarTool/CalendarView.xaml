@@ -1,0 +1,558 @@
+<UserControl x:Class="CalendarTool.CalendarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Malgun Gothic, Segoe UI" Foreground="#F2F5FA"
+             Focusable="True" FocusVisualStyle="{x:Null}" KeyDown="Window_KeyDown">
+
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="Accent" Color="#7C9CFF"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#99A3B8"/>
+
+        <!-- ───────── Buttons ───────── -->
+        <Style x:Key="IconBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="#C9D1E3"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" CornerRadius="8">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="Bg" Color="#00FFFFFF"/>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="Color"
+                                                        To="#2EFFFFFF" Duration="0:0:0.12"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="Color"
+                                                        To="#00FFFFFF" Duration="0:0:0.18"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseBtn" TargetType="Button" BasedOn="{StaticResource IconBtn}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="8">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="Bg" Color="#00E5484D"/>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="Color"
+                                                        To="#E5E5484D" Duration="0:0:0.12"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="Color"
+                                                        To="#00E5484D" Duration="0:0:0.18"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PillBtn" TargetType="Button" BasedOn="{StaticResource IconBtn}">
+            <Setter Property="FontFamily" Value="Malgun Gothic, Segoe UI"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Width" Value="NaN"/>
+            <Setter Property="Height" Value="NaN"/>
+            <Setter Property="Padding" Value="12,6"/>
+        </Style>
+
+        <Style x:Key="DangerBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="9" Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="Bg" Color="#E5484D"/>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="Color"
+                                                        To="#F2686D" Duration="0:0:0.12"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="Color"
+                                                        To="#E5484D" Duration="0:0:0.18"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AccentBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="#0E1220"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="9" Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="Bg" Color="#7C9CFF"/>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="Color"
+                                                        To="#A8BEFF" Duration="0:0:0.12"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="Color"
+                                                        To="#7C9CFF" Duration="0:0:0.18"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SwatchBtn" TargetType="Button">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Ellipse Fill="{TemplateBinding Background}" Stroke="#66FFFFFF" StrokeThickness="1.5"
+                                 RenderTransformOrigin="0.5,0.5">
+                            <Ellipse.RenderTransform>
+                                <ScaleTransform x:Name="Sc" ScaleX="1" ScaleY="1"/>
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1.16" Duration="0:0:0.12"/>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1.16" Duration="0:0:0.12"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15"/>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ───────── Text field ───────── -->
+        <Style x:Key="Field" TargetType="TextBox">
+            <Setter Property="Foreground" Value="#F2F5FA"/>
+            <Setter Property="CaretBrush" Value="#F2F5FA"/>
+            <Setter Property="SelectionBrush" Value="#7C9CFF"/>
+            <Setter Property="Background" Value="#14FFFFFF"/>
+            <Setter Property="Padding" Value="9,7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="Transparent"
+                                BorderThickness="1" CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#33FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#7C9CFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ───────── Slider ───────── -->
+        <Style x:Key="SliderHit" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SliderFill" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Grid Background="Transparent">
+                            <Border Height="4" CornerRadius="2" Background="#7C9CFF" VerticalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SliderThumb" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Ellipse Width="14" Height="14" Fill="White" Cursor="Hand">
+                            <Ellipse.Effect><DropShadowEffect BlurRadius="4" ShadowDepth="0" Opacity="0.5"/></Ellipse.Effect>
+                        </Ellipse>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ThinSlider" TargetType="Slider">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="22" Background="Transparent">
+                            <Border Height="4" CornerRadius="2" Background="#33FFFFFF" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource SliderFill}"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource SliderHit}"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SliderThumb}"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ───────── Context menu (used by code) ───────── -->
+        <Style x:Key="DarkMenu" TargetType="ContextMenu">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="#F2202636" BorderBrush="#40FFFFFF" BorderThickness="1"
+                                CornerRadius="12" Padding="5" Margin="8" MinWidth="200"
+                                RenderTransformOrigin="0.5,0">
+                            <Border.Effect><DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.55"/></Border.Effect>
+                            <Border.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Border.RenderTransform>
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.16"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                         From="0.92" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard></BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DarkMenuItem" TargetType="MenuItem">
+            <Setter Property="Foreground" Value="#F2F5FA"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Bd" CornerRadius="8" Padding="10,8" Background="Transparent">
+                            <StackPanel Orientation="Horizontal">
+                                <ContentPresenter ContentSource="Icon" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <ContentPresenter ContentSource="Header" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2EFFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#8C96AB"/>
+                                <Setter Property="FontSize" Value="12"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DarkSep" TargetType="Separator">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Height="1" Background="#26FFFFFF" Margin="8,4"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ───────── Goal card ───────── -->
+        <DataTemplate x:Key="GoalTemplate">
+            <Border CornerRadius="12" Padding="10,8" Margin="0,0,0,8" RenderTransformOrigin="0.5,0.5">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="#12FFFFFF"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1CFFFFFF"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Border.RenderTransform><TranslateTransform X="0"/></Border.RenderTransform>
+                <Border.Triggers>
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                        <BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.25"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                             From="28" To="0" Duration="0:0:0.32">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard></BeginStoryboard>
+                    </EventTrigger>
+                </Border.Triggers>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Style="{StaticResource SwatchBtn}" Background="{Binding Brush}"
+                            Tag="{Binding}" Click="Swatch_Click" Margin="0,0,8,0" ToolTip="색상 변경"/>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBox Style="{StaticResource Field}" Background="Transparent" Padding="5,2"
+                                 FontSize="14" FontWeight="SemiBold"
+                                 Text="{Binding Name, UpdateSourceTrigger=LostFocus}"/>
+                        <TextBlock Text="{Binding Summary}" FontSize="11" TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextMuted}" Margin="6,0,0,0"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource IconBtn}" Width="24" Height="24" FontSize="10"
+                                Content="&#xE70E;" Tag="{Binding}" Click="GoalUp_Click" ToolTip="위로"/>
+                        <Button Style="{StaticResource IconBtn}" Width="24" Height="24" FontSize="10"
+                                Content="&#xE70D;" Tag="{Binding}" Click="GoalDown_Click" ToolTip="아래로"/>
+                        <Button Style="{StaticResource CloseBtn}" Width="24" Height="24" FontSize="10"
+                                Content="&#xE74D;" Tag="{Binding}" Click="GoalDelete_Click" ToolTip="삭제"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Border x:Name="Root" CornerRadius="12" Background="#151925" ClipToBounds="True">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ───────── Header: goal panel toggle ───────── -->
+            <Grid Grid.Row="0" Margin="20,10,12,0">
+                <TextBlock Text="PM CALENDAR" FontSize="13" FontWeight="SemiBold" Foreground="#C9D1E3" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="PanelToggle" Style="{StaticResource PillBtn}" Click="PanelToggle_Click"
+                            Margin="0,0,0,0" ToolTip="목표 패널 보이기/숨기기">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="목표" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="PanelChevron" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                       Text="&#xE76C;" VerticalAlignment="Center" Margin="8,1,0,0"
+                                       RenderTransformOrigin="0.5,0.5">
+                                <TextBlock.RenderTransform><RotateTransform x:Name="ChevronRot" Angle="0"/></TextBlock.RenderTransform>
+                            </TextBlock>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ───────── Calendar ───────── -->
+                <Grid Grid.Column="0" Margin="20,4,20,14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource IconBtn}" Content="&#xE76B;" Click="PrevMonth_Click" ToolTip="이전 달"/>
+                            <TextBlock x:Name="MonthText" FontSize="26" FontWeight="SemiBold" Margin="10,0"
+                                       MinWidth="150" TextAlignment="Center" VerticalAlignment="Center"/>
+                            <Button Style="{StaticResource IconBtn}" Content="&#xE76C;" Click="NextMonth_Click" ToolTip="다음 달"/>
+                        </StackPanel>
+                        <Button Style="{StaticResource PillBtn}" Content="오늘" HorizontalAlignment="Right"
+                                Click="Today_Click"/>
+                    </Grid>
+
+                    <UniformGrid Grid.Row="1" Columns="7" Margin="0,0,0,4">
+                        <TextBlock Text="일" Foreground="#FF8A8A" TextAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="월" Foreground="#C9D1E3" TextAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="화" Foreground="#C9D1E3" TextAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="수" Foreground="#C9D1E3" TextAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="목" Foreground="#C9D1E3" TextAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="금" Foreground="#C9D1E3" TextAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="토" Foreground="#8AB4FF" TextAlignment="Center" FontWeight="SemiBold"/>
+                    </UniformGrid>
+
+                    <Grid x:Name="DayGrid" Grid.Row="2" Background="Transparent"
+                          MouseLeftButtonDown="DayGrid_MouseLeftButtonDown"
+                          MouseMove="DayGrid_MouseMove"
+                          MouseLeftButtonUp="DayGrid_MouseLeftButtonUp"
+                          MouseRightButtonDown="DayGrid_MouseRightButtonDown"
+                          MouseRightButtonUp="DayGrid_MouseRightButtonUp"
+                          MouseWheel="DayGrid_MouseWheel">
+                        <Grid.RenderTransform><TranslateTransform x:Name="GridShift" Y="0"/></Grid.RenderTransform>
+                    </Grid>
+
+                    <TextBlock x:Name="StatusText" Grid.Row="3" Margin="2,10,0,0" FontSize="12"
+                               Foreground="{StaticResource TextMuted}" TextTrimming="CharacterEllipsis"/>
+                </Grid>
+
+                <!-- ───────── Goal panel (collapsible) ───────── -->
+                <Border x:Name="PanelHost" Grid.Column="1" Width="310" ClipToBounds="True">
+                    <Border Width="310" BorderBrush="#1FFFFFFF" BorderThickness="1,0,0,0" Padding="16,4,16,16">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                                <TextBlock Text="목표" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="색상 칸을 눌러 색 변경 · ▲▼ 로 순서 이동" FontSize="11.5"
+                                           Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <Grid Grid.Row="1">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" Background="Transparent">
+                                    <ItemsControl x:Name="GoalList" ItemTemplate="{StaticResource GoalTemplate}"/>
+                                </ScrollViewer>
+                                <TextBlock x:Name="EmptyHint" Text="아직 목표가 없어요.&#x0A;아래에서 첫 목표를 추가해 보세요."
+                                           TextAlignment="Center" Foreground="{StaticResource TextMuted}"
+                                           VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed"/>
+                            </Grid>
+
+                            <Grid x:Name="NewGoalRow" Grid.Row="2" Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid>
+                                    <TextBox x:Name="NewGoalBox" Style="{StaticResource Field}" KeyDown="NewGoalBox_KeyDown"/>
+                                    <TextBlock Text="새 목표 이름" IsHitTestVisible="False" Margin="11,0,0,0"
+                                               Foreground="#6F7A90" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Text, ElementName=NewGoalBox}" Value="">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                                <Button Grid.Column="1" Style="{StaticResource AccentBtn}" Content="추가"
+                                        Margin="8,0,0,0" Click="AddGoal_Click"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Border>
+            </Grid>
+
+            <!-- ───────── Schedule sheet tabs ───────── -->
+            <Border Grid.Row="2" Background="#38000000" BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0"
+                    CornerRadius="0,0,12,12" Padding="12,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Style="{StaticResource IconBtn}" Content="&#xE710;" Width="28" Height="28"
+                            VerticalAlignment="Top" Margin="0,5,8,0" Click="AddSheet_Click" x:Name="AddSheetBtn" ToolTip="새 일정표 추가"/>
+                    <Button x:Name="TabLeft" Grid.Column="1" Style="{StaticResource IconBtn}" Content="&#xE76B;"
+                            Width="24" Height="28" FontSize="10" VerticalAlignment="Top" Margin="0,5,2,0"
+                            Visibility="Collapsed" Click="TabLeft_Click"/>
+                    <ScrollViewer x:Name="TabScroll" Grid.Column="2" HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Disabled" PreviewMouseWheel="TabScroll_PreviewMouseWheel">
+                        <StackPanel x:Name="TabsPanel" Orientation="Horizontal" AllowDrop="True" Background="Transparent"
+                                    VerticalAlignment="Top" MouseMove="TabsPanel_MouseMove"
+                                    MouseLeftButtonUp="TabsPanel_MouseLeftButtonUp"
+                                    DragOver="TabsPanel_DragOver" Drop="TabsPanel_Drop"/>
+                    </ScrollViewer>
+                    <Button x:Name="TabRight" Grid.Column="3" Style="{StaticResource IconBtn}" Content="&#xE76C;"
+                            Width="24" Height="28" FontSize="10" VerticalAlignment="Top" Margin="2,5,0,0"
+                            Visibility="Collapsed" Click="TabRight_Click"/>
+                    <TextBlock x:Name="TabHint" Grid.Column="4" Text="더블클릭 이름 변경 · 우클릭 메뉴 · 드래그로 순서 변경"
+                               FontSize="11" Foreground="#6F7A90" VerticalAlignment="Center" Margin="12,0,4,0"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

@@ -566,6 +566,11 @@ namespace ProjectManagementBoard
             var card = ToolModel.CreateBlank();
             card.ToolId = tool?.Id ?? "";
             card.Title = tool?.DisplayName ?? "";
+            if (tool is IBoardToolDefaultSize size && size.DefaultWidth > 0 && size.DefaultHeight > 0)
+            {
+                card.Width = size.DefaultWidth;
+                card.Height = size.DefaultHeight;
+            }
             var pos = at is { } p
                 ? new Point(p.X - card.Width / 2, p.Y - 20)
                 : FindFreeSlot(card.Width, card.Height, CardRects());

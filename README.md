@@ -30,7 +30,7 @@ Visual Studio에서는 `ProjectManagementBoard.slnx`를 열면 보드와 모든 
 3. `ProjectManagementBoard.slnx`의 `Tools` 폴더에 프로젝트를 추가합니다.
 4. 빌드 후 보드에서 `+ 새 관리 툴`로 추가합니다.
 
-참고용 예: `Tools/MemoTool`(가장 단순), `Tools/CheckMemoTool`(MVVM, 상태 저장).
+참고용 예: `Tools/MemoTool`(가장 단순), `Tools/CheckMemoTool`(MVVM, 상태 저장), `Tools/CalendarTool`(큰 화면, 기본 카드 크기 지정 `IBoardToolDefaultSize`).
 
 ## 팀 개발 규칙
 

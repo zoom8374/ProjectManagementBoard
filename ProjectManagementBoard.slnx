@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Tools/">
+    <Project Path="Tools/CalendarTool/CalendarTool/CalendarTool.csproj" />
     <Project Path="Tools/CheckMemoTool/CheckMemoTool/CheckMemoTool.csproj" />
     <Project Path="Tools/MemoTool/MemoTool/MemoTool.csproj" />
   </Folder>
