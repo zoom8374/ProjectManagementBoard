@@ -998,10 +998,16 @@ namespace ProjectManagementBoard
         private static bool InToolContent(object? source) =>
             (source as DependencyObject).SelfAndAncestors().Any(x => x is ToolContentHost);
 
+        /// <summary>
+        /// Ctrl held = the gesture is the board's, whatever is under the mouse: Ctrl+wheel zooms and Ctrl+right-drag pans even
+        /// over a docked tool or a button. These Preview handlers on the Viewport run before any tool sees the event.
+        /// </summary>
+        private static bool BoardOverride => (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+
         private void Viewport_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            // Over a docked tool the plain wheel belongs to the tool (scrolling); Ctrl+wheel still zooms the board.
-            if (InToolContent(e.OriginalSource) && Keyboard.Modifiers != ModifierKeys.Control) return;
+            // Over a docked tool the plain wheel belongs to the tool (scrolling); with Ctrl it always zooms the board.
+            if (InToolContent(e.OriginalSource) && !BoardOverride) return;
             ZoomAt(e.GetPosition(Viewport), Math.Pow(ZoomStep, e.Delta / 120.0));
             e.Handled = true;
         }
@@ -1017,10 +1023,14 @@ namespace ProjectManagementBoard
         /// <summary>Right-button drag pans the board from anywhere (also over cards and groups).</summary>
         private void Viewport_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // A right-click on a button is that button's own gesture (thumbnail: remove image, folder: open it in
-            // Explorer). Starting a pan here would swallow it, so only right-presses elsewhere pan the board.
-            if ((e.OriginalSource as DependencyObject).SelfAndAncestors(Viewport).Any(x => x is ButtonBase)) return;
-            if (InToolContent(e.OriginalSource)) return; // the tool's own context menu etc.
+            // A right-click on a button or inside a docked tool is that control's own gesture (e.g. the calendar's right-click
+            // menu). Starting a pan there would swallow it, so without Ctrl only right-presses elsewhere pan the board;
+            // with Ctrl the board always pans (and the tool never sees the right-click).
+            if (!BoardOverride)
+            {
+                if ((e.OriginalSource as DependencyObject).SelfAndAncestors(Viewport).Any(x => x is ButtonBase)) return;
+                if (InToolContent(e.OriginalSource)) return;
+            }
 
             if (_zoomAnimating) // finish the zoom so panning starts from a stable camera
             {

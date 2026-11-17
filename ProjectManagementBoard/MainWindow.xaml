@@ -315,10 +315,11 @@
                                        HorizontalAlignment="Center" Margin="0,6,0,0"/>
                         </StackPanel>
 
-                        <!-- Zoom controls -->
+                        <!-- Zoom controls + the Ctrl hint next to them -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                    Margin="24,0,0,24">
                         <!-- Glass look (design #7): translucent gradient, hairline border and a soft shadow instead of a solid bar -->
-                        <Border Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="24,0,0,24"
-                                CornerRadius="17" Padding="4" BorderBrush="{DynamicResource Fg40}" BorderThickness="1">
+                        <Border CornerRadius="17" Padding="4" BorderBrush="{DynamicResource Fg40}" BorderThickness="1">
                             <Border.Resources>
                             <ResourceDictionary Source="/ProjectManagementBoard;component/Themes/OnDark.xaml"/>
                         </Border.Resources>
@@ -351,6 +352,28 @@
                                 </Button>
                             </StackPanel>
                         </Border>
+                        <!-- Ctrl always means the board, even over a docked tool (MainWindow.BoardOverride). Mouse never stops here. -->
+                        <!-- Same glass pill as the zoom bar (always dark, white text) so it stays readable over cards -->
+                        <Border VerticalAlignment="Center" Margin="10,0,0,0" CornerRadius="14" Padding="12,6"
+                                BorderBrush="{DynamicResource Fg40}" BorderThickness="1" IsHitTestVisible="False"
+                                TextElement.Foreground="White">
+                            <Border.Resources>
+                                <ResourceDictionary Source="/ProjectManagementBoard;component/Themes/OnDark.xaml"/>
+                            </Border.Resources>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#9E26407A" Offset="0"/>
+                                    <GradientStop Color="#9E111D38" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <TextBlock FontSize="12">
+                                <Run Text="Ctrl + 휠" FontWeight="SemiBold"/><Run Text="  확대/축소" Foreground="{DynamicResource FgD0}"/>
+                                <Run Text="  ·  " Foreground="{DynamicResource Fg66}"/>
+                                <Run Text="Ctrl + 우클릭 드래그" FontWeight="SemiBold"/><Run Text="  화면 이동" Foreground="{DynamicResource FgD0}"/>
+                                <Run Text="  (관리 툴 위에서도)" Foreground="{DynamicResource Fg99}"/>
+                            </TextBlock>
+                        </Border>
+                        </StackPanel>
                     </Grid>
 
                     <!-- Undo toast -->
