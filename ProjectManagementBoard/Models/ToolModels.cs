@@ -25,11 +25,15 @@ namespace ProjectManagementBoard.Models
     {
         public const string DefaultColor = "#9EC5FF";
 
+        public const double DefaultTitleFontSize = 22;
+
         private string _title = "";
+        private double _titleFontSize = DefaultTitleFontSize;
         private string _color = DefaultColor;
         private double _x, _y, _width = 760, _height = 520;
 
         public string Title { get => _title; set => SetField(ref _title, value ?? ""); }
+        public double TitleFontSize { get => _titleFontSize; set => SetField(ref _titleFontSize, value > 0 ? value : DefaultTitleFontSize); }
         public string Color { get => _color; set => SetField(ref _color, value ?? DefaultColor); }
         public double X { get => _x; set => SetField(ref _x, value); }
         public double Y { get => _y; set => SetField(ref _y, value); }
@@ -85,8 +89,10 @@ namespace ProjectManagementBoard.Models
         public const double DefaultWidth = 420;
         public const double DefaultHeight = 300;
         public const string DefaultCardColor = "#4472C4";
+        public const double DefaultTitleFontSize = 21;
 
         private string _title = "";
+        private double _titleFontSize = DefaultTitleFontSize;
         private double _x, _y;
         private double _width = DefaultWidth;
         private double _height = DefaultHeight;
@@ -101,6 +107,7 @@ namespace ProjectManagementBoard.Models
         public string State { get => _state; set => SetField(ref _state, value ?? ""); }
 
         public string Title { get => _title; set => SetField(ref _title, value ?? ""); }
+        public double TitleFontSize { get => _titleFontSize; set => SetField(ref _titleFontSize, value > 0 ? value : DefaultTitleFontSize); }
         public string CardColor { get => _cardColor; set => SetField(ref _cardColor, value ?? DefaultCardColor); }
         public double X { get => _x; set => SetField(ref _x, value); }
         public double Y { get => _y; set => SetField(ref _y, value); }

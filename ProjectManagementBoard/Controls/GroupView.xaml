@@ -55,7 +55,7 @@
             </Grid.ColumnDefinitions>
             <Ellipse Width="11" Height="11" Margin="8,0,6,0" VerticalAlignment="Center" Fill="{Binding Color}"/>
             <c:EditableText Grid.Column="1" Field="GroupTitle" Placeholder="그룹 이름" Text="{Binding Title}"
-                            FontSize="21" FontWeight="Bold" MaxWidth="420"/>
+                            FontSize="{Binding TitleFontSize}" FontWeight="Bold" MaxWidth="420"/>
             <TextBlock x:Name="CountText" Grid.Column="2" FontSize="12" Opacity="0.65"
                        VerticalAlignment="Center" Margin="8,0,0,0"/>
             <StackPanel x:Name="GroupActions" Grid.Column="4" Orientation="Horizontal" Opacity="0">

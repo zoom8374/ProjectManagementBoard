@@ -4,6 +4,6 @@
     <!-- Transparent so the card's color shows through; the card is always dark, so the text is white. -->
     <TextBox x:Name="Editor" AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
              VerticalScrollBarVisibility="Auto" Background="Transparent" BorderThickness="0"
-             Foreground="White" CaretBrush="White" FontSize="17" Padding="12"
+             Foreground="White" CaretBrush="White" FontSize="18" Padding="12"
              FontFamily="Segoe UI, Malgun Gothic"/>
 </UserControl>
