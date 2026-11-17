@@ -124,6 +124,8 @@ namespace CalendarTool
             BindGoals();
             BuildCells();
             SetPanel(data.PanelOpen, animate: false);
+            SetSchedule(data.ScheduleOpen, animate: false);   // a saved card already has the schedule's height
+            SizeChanged += (_, _) => FollowCardSize();
 
             startDate = StartFor(DateTime.Today);
             RefreshCells();
@@ -484,6 +486,103 @@ namespace CalendarTool
         }
 
         // ───────────────────────── goal panel ─────────────────────────
+
+        // ───────────────────────── schedule (Gantt) panel under the calendar ─────────────────────────
+
+        const double ScheduleHeight = 300;
+
+        /// <summary>
+        /// Asks the host to grow (positive) or shrink (negative) the card by this height. The board does it with its usual eased
+        /// resize; <see cref="FollowCardSize"/> hands exactly the gained / lost height to the schedule row, so the calendar above
+        /// never changes size. Without a listener the schedule row takes its height from the calendar instead.
+        /// </summary>
+        public event Action<double>? HeightChangeRequested;
+
+        SchedulePanel? sched;
+        bool following;                    // a card resize requested by the schedule toggle is in progress
+        double followBase, followFrom, followTo;
+        System.Windows.Threading.DispatcherTimer? followTimeout;
+
+        void Schedule_Click(object sender, RoutedEventArgs e) => SetSchedule(!data.ScheduleOpen, animate: true);
+
+        void SetSchedule(bool open, bool animate)
+        {
+            data.ScheduleOpen = open;
+            ScheduleBtn.Foreground = new SolidColorBrush(open ? AccentColor : Color.FromRgb(0xC9, 0xD1, 0xE3));
+            if (open && sched == null)
+            {
+                sched = new SchedulePanel(this);
+                sched.CloseRequested += () => SetSchedule(false, animate: true);
+                ScheduleHost.Child = sched;
+                PushSchedule();
+            }
+
+            double from = ScheduleRow.ActualHeight, to = open ? ScheduleHeight : 0;
+            if (!animate || HeightChangeRequested == null || !IsLoaded || Math.Abs(to - from) < 0.5)
+            {
+                following = false;
+                ScheduleRow.Height = new GridLength(to);
+                return;
+            }
+
+            // follow the card: whatever height the card gains or loses goes to (or comes from) the schedule row
+            following = true;
+            followFrom = from;
+            followTo = to;
+            followBase = ActualHeight - from;   // height of everything but the schedule
+            HeightChangeRequested(to - from);
+
+            // safety net: if the card never reaches the target (e.g. the board clamps its size), settle anyway
+            followTimeout?.Stop();
+            followTimeout = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1500) };
+            followTimeout.Tick += (_, _) => { followTimeout?.Stop(); if (following) { following = false; ScheduleRow.Height = new GridLength(followTo); } };
+            followTimeout.Start();
+        }
+
+        /// <summary>While the card animates after a schedule toggle, gives the schedule row the card's extra height.</summary>
+        void FollowCardSize()
+        {
+            if (!following) return;
+            double v = Math.Clamp(ActualHeight - followBase, 0, Math.Max(followFrom, followTo));
+            ScheduleRow.Height = new GridLength(v);
+            if (Math.Abs(v - followTo) < 0.5)
+            {
+                following = false;
+                followTimeout?.Stop();
+                ScheduleRow.Height = new GridLength(followTo);
+            }
+        }
+
+        /// <summary>Rebuilds the Gantt rows from the active sheet (only while the panel exists). Called at the end of <c>RefreshCells</c>.</summary>
+        void PushSchedule()
+        {
+            if (sched == null) return;
+
+            var rows = new List<ScheduleRow>();
+            foreach (var g in goals)
+            {
+                var row = new ScheduleRow { Name = g.Name, Color = g.Rgb };
+                foreach (var key in Days.Keys.Union(Days2.Keys))
+                {
+                    if (!IdsAt(key).Contains(g.Id)) continue;
+                    if (!DateTime.TryParseExact(key, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)) continue;
+                    row.Days.Add(d);
+                    if (IsDone(key, g.Id)) row.Done.Add(d);
+                }
+                row.Days.Sort();
+                rows.Add(row);
+            }
+
+            var memos = new Dictionary<DateTime, string>();
+            foreach (var kv in Notes)
+                if (!string.IsNullOrWhiteSpace(kv.Value) &&
+                    DateTime.TryParseExact(kv.Key, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var md))
+                    memos[md] = kv.Value;
+
+            sched.SetData(new ScheduleData { SheetName = Active.Name, Rows = rows, Memos = memos });
+        }
+
+        // ───────────────────────── goal panel toggle ─────────────────────────
 
         void PanelToggle_Click(object sender, RoutedEventArgs e) => SetPanel(!data.PanelOpen, animate: true);
 
@@ -1021,6 +1120,7 @@ namespace CalendarTool
                 if (sameDate && c.Sig != sig) Pulse(c);
                 c.Sig = sig;
             }
+            PushSchedule();
         }
 
         /// <summary>Hover tooltip: one line per goal on the date (name + the date range of its contiguous run), then the memo.</summary>

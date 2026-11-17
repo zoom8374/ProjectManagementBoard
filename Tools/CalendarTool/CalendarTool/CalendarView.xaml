@@ -398,6 +398,8 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <!-- Schedule (Gantt) below the calendar: 0 when closed. Opening grows the card by this height, so the calendar keeps its size. -->
+                <RowDefinition x:Name="ScheduleRow" Height="0"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
@@ -432,6 +434,18 @@
                     <TextBlock Text="PM CALENDAR" FontSize="13" FontWeight="SemiBold" Foreground="#C9D1E3" Margin="0,2,0,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- Schedule (Gantt) toggle: same icon as the standalone app; accent coloured while open -->
+                    <Button x:Name="ScheduleBtn" Style="{StaticResource IconBtn}" Click="Schedule_Click"
+                            Margin="0,0,4,0" ToolTip="Schedule (간트 일정표) 보이기/숨기기">
+                        <Canvas Width="16" Height="14">
+                            <Rectangle Canvas.Left="0" Canvas.Top="1" Width="9" Height="3" RadiusX="1.5" RadiusY="1.5"
+                                       Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <Rectangle Canvas.Left="4" Canvas.Top="5.5" Width="11" Height="3" RadiusX="1.5" RadiusY="1.5"
+                                       Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <Rectangle Canvas.Left="7" Canvas.Top="10" Width="9" Height="3" RadiusX="1.5" RadiusY="1.5"
+                                       Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Canvas>
+                    </Button>
                     <Button x:Name="PanelToggle" Style="{StaticResource PillBtn}" Click="PanelToggle_Click"
                             Margin="0,0,0,0" ToolTip="목표 패널 보이기/숨기기">
                         <StackPanel Orientation="Horizontal">
@@ -550,8 +564,11 @@
                 </Border>
             </Grid>
 
+            <!-- ───────── Schedule (Gantt) panel, built in code (SchedulePanel) ───────── -->
+            <Border x:Name="ScheduleHost" Grid.Row="2" ClipToBounds="True" BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0"/>
+
             <!-- ───────── Schedule sheet tabs ───────── -->
-            <Border Grid.Row="2" Background="#38000000" BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0"
+            <Border Grid.Row="3" Background="#38000000" BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0"
                     CornerRadius="0,0,12,12" Padding="12,0">
                 <Grid>
                     <Grid.ColumnDefinitions>

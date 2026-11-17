@@ -20,10 +20,21 @@ namespace CalendarTool
 
         public IBoardToolInstance CreateInstance() => new Instance();
 
-        private sealed class Instance : IBoardToolInstance
+        private sealed class Instance : IBoardToolInstance, IBoardToolResizeRequest
         {
             private static readonly JsonSerializerOptions Options = new();
-            private CalendarView _view = new(new CalendarState());
+            private CalendarView _view = null!;
+
+            public Instance() => Attach(new CalendarView(new CalendarState()));
+
+            /// <summary>Opening / closing the Schedule panel grows / shrinks the card by the panel's height.</summary>
+            public event EventHandler<Vector>? ResizeRequested;
+
+            private void Attach(CalendarView view)
+            {
+                _view = view;
+                view.HeightChangeRequested += dh => ResizeRequested?.Invoke(this, new Vector(0, dh));
+            }
 
             public FrameworkElement View => _view;
 
@@ -34,7 +45,7 @@ namespace CalendarTool
                 CalendarState? parsed;
                 try { parsed = JsonSerializer.Deserialize<CalendarState>(state, Options); }
                 catch (JsonException) { return; }   // unreadable state: keep the fresh calendar
-                if (parsed != null) _view = new CalendarView(parsed);
+                if (parsed != null) Attach(new CalendarView(parsed));
             }
         }
     }

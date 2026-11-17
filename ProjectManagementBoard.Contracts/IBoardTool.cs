@@ -44,4 +44,14 @@ namespace ProjectManagementBoard.Contracts
         double DefaultWidth { get; }
         double DefaultHeight { get; }
     }
+
+    /// <summary>
+    /// Optional, implemented next to <see cref="IBoardToolInstance"/>: lets the tool ask the board to resize its card, e.g. to
+    /// open an extra panel without squeezing the rest of its view. The board applies it with its usual eased resize.
+    /// </summary>
+    public interface IBoardToolResizeRequest
+    {
+        /// <summary>Raised with the change of the card's size in board units (X = width, Y = height; negative shrinks).</summary>
+        event EventHandler<Vector>? ResizeRequested;
+    }
 }

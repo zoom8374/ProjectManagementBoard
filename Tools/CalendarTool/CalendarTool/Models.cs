@@ -118,6 +118,9 @@ namespace CalendarTool
         public int ActiveSheet { get; set; }
         public bool PanelOpen { get; set; } = true;
 
+        /// <summary>Whether the Schedule (Gantt) panel is open under the calendar. The card's saved height already includes it.</summary>
+        public bool ScheduleOpen { get; set; }
+
         /// <summary>Calendar background colour (#RRGGBB), picked with the colour dot in the header.</summary>
         public string BgHex { get; set; } = "#151925";
 

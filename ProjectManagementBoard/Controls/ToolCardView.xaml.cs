@@ -112,6 +112,7 @@ namespace ProjectManagementBoard.Controls
             {
                 _instance = tool.CreateInstance();
                 if (Model.State.Length > 0) _instance.LoadState(Model.State);
+                if (_instance is IBoardToolResizeRequest resizable) resizable.ResizeRequested += OnToolResizeRequested;
                 ToolHost.Child = _instance.View;
                 Placeholder.Visibility = Visibility.Collapsed;
             }
@@ -121,6 +122,14 @@ namespace ProjectManagementBoard.Controls
                 ToolHost.Child = null;
                 PlaceholderText.Text = $"관리 툴을 불러오지 못했어요\n{ex.GetBaseException().Message}";
             }
+        }
+
+        /// <summary>The docked tool asked for a bigger/smaller card (e.g. CalendarTool opening its Schedule panel); eased like any resize.</summary>
+        private void OnToolResizeRequested(object? sender, Vector delta)
+        {
+            Model.Width = Math.Max(MinCardWidth, Model.Width + delta.X);
+            Model.Height = Math.Max(MinCardHeight, Model.Height + delta.Y);
+            Released?.Invoke(this, EventArgs.Empty);   // group membership / counts may change with the new size
         }
 
         /// <summary>Copies the tool's current data into <see cref="ToolModel.State"/> (before copy, delete, save).</summary>
@@ -137,6 +146,7 @@ namespace ProjectManagementBoard.Controls
         public void Detach()
         {
             CaptureState();
+            if (_instance is IBoardToolResizeRequest resizable) resizable.ResizeRequested -= OnToolResizeRequested;
             (_instance as IDisposable)?.Dispose();
             _instance = null;
             Model.PropertyChanged -= OnModelChanged;
