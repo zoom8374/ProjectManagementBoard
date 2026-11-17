@@ -26,6 +26,13 @@ namespace CalendarTool
         /// <summary>40 swatches: a grey ramp followed by 8 hues x 4 lightness levels.</summary>
         static readonly Color[] FullPalette = BuildPalette();
 
+        /// <summary>Background presets offered by the colour dot in the header (same as the standalone app).</summary>
+        static readonly Color[] WindowPresets = new[]
+        {
+            "#151925", "#0E1014", "#1D1F27", "#262626", "#1A1430", "#2D1F3D",
+            "#0E2233", "#1F2A44", "#0F211B", "#14302B", "#2A1520", "#3A2418",
+        }.Select(h => (Color)ColorConverter.ConvertFromString(h)).ToArray();
+
         static Color[] BuildPalette()
         {
             var list = new List<Color>();
@@ -99,6 +106,7 @@ namespace CalendarTool
 
         DateTime? selA, selB;
         bool dragging;
+        readonly SolidColorBrush bgBrush;   // calendar background (CalendarState.BgHex), animated by the colour dot
 
         Sheet Active => data.Sheets[data.ActiveSheet];
         Dictionary<string, Guid> Days => Active.Days;
@@ -111,6 +119,8 @@ namespace CalendarTool
             InitializeComponent();
 
             data = state.Normalize();
+            bgBrush = new SolidColorBrush(TryParseColor(data.BgHex, out var bc) ? bc : Color.FromRgb(0x15, 0x19, 0x25));
+            Root.Background = bgBrush;
             BindGoals();
             BuildCells();
             SetPanel(data.PanelOpen, animate: false);
@@ -497,7 +507,18 @@ namespace CalendarTool
             ChevronRot.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(angle, dur) { EasingFunction = EaseOut });
         }
 
-        // ───────────────────────── colour picker ─────────────────────────
+        // ───────────────────────── colours: calendar background + picker ─────────────────────────
+
+        /// <summary>Colour dot in the header: changes the calendar's background (saved with the card).</summary>
+        void Theme_Click(object sender, RoutedEventArgs e)
+        {
+            ShowColorPopup(ThemeBtn, "달력 색상", bgBrush.Color, WindowPresets, c =>
+            {
+                data.BgHex = HexOf(c);
+                bgBrush.BeginAnimation(SolidColorBrush.ColorProperty,
+                    new ColorAnimation(c, TimeSpan.FromMilliseconds(160)) { EasingFunction = EaseOut });
+            });
+        }
 
         /// <summary>Popup with swatches, a hex field and R/G/B sliders. <paramref name="apply"/> fires live.</summary>
         void ShowColorPopup(FrameworkElement target, string title, Color initial, IReadOnlyList<Color> swatches, Action<Color> apply)

@@ -118,6 +118,9 @@ namespace CalendarTool
         public int ActiveSheet { get; set; }
         public bool PanelOpen { get; set; } = true;
 
+        /// <summary>Calendar background colour (#RRGGBB), picked with the colour dot in the header.</summary>
+        public string BgHex { get; set; } = "#151925";
+
         /// <summary>Makes a loaded (or new) state usable: at least one sheet, active index in range.</summary>
         public CalendarState Normalize()
         {

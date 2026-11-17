@@ -403,7 +403,34 @@
 
             <!-- ───────── Header: goal panel toggle ───────── -->
             <Grid Grid.Row="0" Margin="20,10,12,0">
-                <TextBlock Text="PM CALENDAR" FontSize="13" FontWeight="SemiBold" Foreground="#C9D1E3" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Colour dot: changes the calendar background (as in the standalone app) -->
+                    <Button x:Name="ThemeBtn" Click="Theme_Click" Cursor="Hand" Focusable="False"
+                            Margin="-6,0,0,0" ToolTip="달력 색상 변경" Background="Transparent">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="Transparent" Padding="6" RenderTransformOrigin="0.5,0.5">
+                                    <Border.RenderTransform><ScaleTransform x:Name="Sc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
+                                    <Ellipse Width="11" Height="11" Fill="{StaticResource Accent}"
+                                             Stroke="#55FFFFFF" StrokeThickness="1"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1.45" Duration="0:0:0.14"/>
+                                            <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1.45" Duration="0:0:0.14"/>
+                                        </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                                        <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.18"/>
+                                            <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.18"/>
+                                        </Storyboard></BeginStoryboard></Trigger.ExitActions>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <TextBlock Text="PM CALENDAR" FontSize="13" FontWeight="SemiBold" Foreground="#C9D1E3" Margin="0,2,0,0"/>
+                </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button x:Name="PanelToggle" Style="{StaticResource PillBtn}" Click="PanelToggle_Click"
                             Margin="0,0,0,0" ToolTip="목표 패널 보이기/숨기기">
