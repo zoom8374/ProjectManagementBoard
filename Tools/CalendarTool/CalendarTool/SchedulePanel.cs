@@ -63,6 +63,17 @@ namespace CalendarTool
         /// <summary>The close button was pressed: the calendar collapses the panel.</summary>
         public event Action? CloseRequested;
 
+        /// <summary>
+        /// Measured height of everything except the task rows (top bar, headers, padding, the timeline's horizontal scrollbar),
+        /// or 0 until the panel has been laid out.
+        /// </summary>
+        public double ChromeHeight =>
+            ActualHeight > 0 && bodySv.ActualHeight > 0
+                ? ActualHeight - bodySv.ActualHeight + SystemParameters.HorizontalScrollBarHeight
+                : 0;
+
+        public double TaskRowHeight => RowH;
+
         public SchedulePanel(FrameworkElement host)
         {
             TextElement.SetForeground(this, new SolidColorBrush(Color.FromRgb(0xF2, 0xF5, 0xFA)));

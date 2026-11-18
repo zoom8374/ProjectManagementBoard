@@ -110,12 +110,12 @@
                                                   Focusable="False" Margin="0,0,0,2">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <StackPanel Orientation="Horizontal"/>
+                                                <WrapPanel Orientation="Horizontal"/>
                                             </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Button Click="Choice_Click" Cursor="Hand" Margin="0,0,8,0"
+                                                <Button Click="Choice_Click" Cursor="Hand" Margin="0,0,8,8"
                                                         FocusVisualStyle="{x:Null}" Focusable="False">
                                                     <Button.Template>
                                                         <ControlTemplate TargetType="Button">

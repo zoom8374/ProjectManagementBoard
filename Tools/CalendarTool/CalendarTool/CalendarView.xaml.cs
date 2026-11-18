@@ -489,7 +489,19 @@ namespace CalendarTool
 
         // ───────────────────────── schedule (Gantt) panel under the calendar ─────────────────────────
 
-        const double ScheduleHeight = 300;
+        // Panel height = fixed chrome (title bar, table header, padding, horizontal scrollbar) + one row per goal.
+        // Up to ScheduleMaxRows rows are shown; with more goals the timeline scrolls vertically.
+        const double ScheduleChrome = 146, ScheduleRowH = 38;
+        const int ScheduleMinRows = 2, ScheduleMaxRows = 10;
+
+        double ScheduleHeight
+        {
+            get
+            {
+                double chrome = sched is { ChromeHeight: > 0 } ? sched.ChromeHeight : ScheduleChrome;   // measured once laid out
+                return chrome + ScheduleRowH * Math.Clamp(goals.Count, ScheduleMinRows, ScheduleMaxRows) + 4;
+            }
+        }
 
         /// <summary>
         /// Asks the host to grow (positive) or shrink (negative) the card by this height. The board does it with its usual eased
@@ -499,7 +511,8 @@ namespace CalendarTool
         public event Action<double>? HeightChangeRequested;
 
         SchedulePanel? sched;
-        bool following;                    // a card resize requested by the schedule toggle is in progress
+        bool creatingSched;
+        bool following;                  // a card resize requested by the schedule toggle is in progress
         double followBase, followFrom, followTo;
         System.Windows.Threading.DispatcherTimer? followTimeout;
 
@@ -514,10 +527,25 @@ namespace CalendarTool
                 sched = new SchedulePanel(this);
                 sched.CloseRequested += () => SetSchedule(false, animate: true);
                 ScheduleHost.Child = sched;
+                // once the panel is laid out its real chrome height is known: correct the estimate (settled sizes only)
+                sched.SizeChanged += (_, _) =>
+                {
+                    if (data.ScheduleOpen && !following && IsLoaded && Math.Abs(ScheduleHeight - ScheduleRow.ActualHeight) >= 1)
+                        ResizeSchedule(ScheduleHeight, animate: true);
+                };
+                creatingSched = true;   // the resize below sizes the row; PushSchedule must not start a second one
                 PushSchedule();
+                creatingSched = false;
             }
 
-            double from = ScheduleRow.ActualHeight, to = open ? ScheduleHeight : 0;
+            ResizeSchedule(open ? ScheduleHeight : 0, animate);
+        }
+
+        void ResizeSchedule(double to, bool animate)
+        {
+            double actual = ScheduleRow.ActualHeight;
+            double from = following ? followTo : actual;   // where the card's target currently stands
+            if (following && Math.Abs(to - followTo) < 0.5) return;   // already heading there
             if (!animate || HeightChangeRequested == null || !IsLoaded || Math.Abs(to - from) < 0.5)
             {
                 following = false;
@@ -527,9 +555,9 @@ namespace CalendarTool
 
             // follow the card: whatever height the card gains or loses goes to (or comes from) the schedule row
             following = true;
-            followFrom = from;
+            followFrom = actual;
             followTo = to;
-            followBase = ActualHeight - from;   // height of everything but the schedule
+            followBase = ActualHeight - actual;   // height of everything but the schedule
             HeightChangeRequested(to - from);
 
             // safety net: if the card never reaches the target (e.g. the board clamps its size), settle anyway
@@ -557,6 +585,10 @@ namespace CalendarTool
         void PushSchedule()
         {
             if (sched == null) return;
+
+            // the panel is as tall as the goal count asks for (see ScheduleHeight)
+            if (data.ScheduleOpen && !creatingSched && Math.Abs(ScheduleHeight - (following ? followTo : ScheduleRow.ActualHeight)) >= 0.5)
+                ResizeSchedule(ScheduleHeight, animate: IsLoaded);
 
             var rows = new List<ScheduleRow>();
             foreach (var g in goals)
