@@ -62,6 +62,15 @@
                 <Button Style="{StaticResource IconButton}" ToolTip="그룹 색상" Click="GroupColor_Click">
                     <Ellipse Width="13" Height="13" Fill="{Binding Color}" Stroke="{DynamicResource ThemeText}" StrokeThickness="1.5"/>
                 </Button>
+                <!-- Saves the group with everything inside (nested groups + tools and their data) to its own *.pmgr -->
+                <Button x:Name="SaveGroupButton" Style="{StaticResource IconButton}" Content="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="12" Click="Save_Click">
+                    <Button.ToolTip>
+                        <TextBlock>
+                            <Run Text="그룹 저장 (*.pmgr)" FontWeight="SemiBold"/><LineBreak/>
+                            <Run Text="안의 관리 툴까지 함께 저장 · ‘+ 그룹 → 불러오기’로 다시 쓸 수 있어요" Foreground="#B3FFFFFF"/>
+                        </TextBlock>
+                    </Button.ToolTip>
+                </Button>
                 <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="11" ToolTip="그룹 삭제 (관리 툴은 유지)"
                         Click="Delete_Click"/>
             </StackPanel>

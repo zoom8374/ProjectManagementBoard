@@ -234,7 +234,7 @@
                                         <TextBlock Text="배경 색" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-                                <Button Style="{StaticResource GhostButton}" Margin="0,0,10,0" ToolTip="관리 툴을 묶는 그룹 박스 추가"
+                                <Button Style="{StaticResource GhostButton}" Margin="0,0,10,0" ToolTip="그룹 박스 추가 (새 그룹 · 저장해 둔 그룹 불러오기)"
                                         Click="AddGroup_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <Rectangle Width="15" Height="12" RadiusX="3" RadiusY="3" Stroke="{DynamicResource ThemeText}" StrokeThickness="1.4"

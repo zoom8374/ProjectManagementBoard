@@ -45,6 +45,27 @@ namespace ProjectManagementBoard.Services
             File.Move(temp, path, overwrite: true);
         }
 
+        /// <summary>Writes a group with its contents (*.pmgr), through a temp file like the project.</summary>
+        public static void SaveGroupFile(string path, GroupFileData file)
+        {
+            var temp = path + ".tmp";
+            File.WriteAllText(temp, JsonSerializer.Serialize(file, Options));
+            File.Move(temp, path, overwrite: true);
+        }
+
+        public static GroupFileData LoadGroupFile(string path)
+        {
+            var file = JsonSerializer.Deserialize<GroupFileData>(File.ReadAllText(path), Options) ?? throw new InvalidDataException("빈 파일");
+            if (file.Group == null) throw new InvalidDataException("그룹 파일이 아니에요");
+            file.Groups ??= new();
+            file.Tools ??= new();
+            return file;
+        }
+
+        /// <summary>Deep copy through JSON (a fresh, independent model with the same saved properties).</summary>
+        public static T Clone<T>(T value) =>
+            JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Options), Options) ?? throw new InvalidDataException("복사 실패");
+
         public static ToolFileData LoadToolFile(string path)
         {
             var file = JsonSerializer.Deserialize<ToolFileData>(File.ReadAllText(path), Options) ?? throw new InvalidDataException("빈 파일");

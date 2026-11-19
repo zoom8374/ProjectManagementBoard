@@ -26,6 +26,9 @@ namespace ProjectManagementBoard.Controls
         public GroupModel Model { get; }
 
         public event EventHandler? DeleteRequested;
+
+        /// <summary>The save button was pressed: the host writes the group and its contents to a *.pmgr file.</summary>
+        public event EventHandler? SaveRequested;
         public event EventHandler<EditRequest>? EditRequested;
 
         /// <summary>A header drag is starting (host snapshots the member cards).</summary>
@@ -337,6 +340,8 @@ namespace ProjectManagementBoard.Controls
         }
 
         private void Delete_Click(object sender, RoutedEventArgs e) => DeleteRequested?.Invoke(this, EventArgs.Empty);
+
+        private void Save_Click(object sender, RoutedEventArgs e) => SaveRequested?.Invoke(this, EventArgs.Empty);
 
         #endregion
     }

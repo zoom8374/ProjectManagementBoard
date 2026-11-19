@@ -148,4 +148,21 @@ namespace ProjectManagementBoard.Models
             Width = card.Width, Height = card.Height, State = card.State,
         };
     }
+
+    /// <summary>
+    /// A group saved on its own (*.pmgr, JSON) together with everything inside it — nested groups and management tools with their
+    /// data — so it can be placed on another board via + 그룹 → 불러오기. Positions are relative to the group's top-left corner
+    /// (the saved <see cref="Group"/> has X = Y = 0); loading moves everything to where the group lands.
+    /// </summary>
+    public class GroupFileData
+    {
+        public const string Extension = ".pmgr";
+
+        public int Version { get; set; } = 1;
+        public GroupModel Group { get; set; } = new();
+        /// <summary>Groups inside <see cref="Group"/> (geometric membership at save time).</summary>
+        public List<GroupModel> Groups { get; set; } = new();
+        /// <summary>Management tools inside, bottom-most first (board z-order).</summary>
+        public List<ToolModel> Tools { get; set; } = new();
+    }
 }

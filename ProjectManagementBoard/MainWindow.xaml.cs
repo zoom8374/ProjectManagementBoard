@@ -822,6 +822,7 @@ namespace ProjectManagementBoard
         {
             var view = new GroupView(group);
             view.DeleteRequested += (_, _) => DeleteGroup(view);
+            view.SaveRequested += (_, _) => SaveGroupFile(group);
             view.EditRequested += (_, request) => Editor.Show(request);
             view.DragStarted += (_, _) => _draggedGroupMembers = MembersOf(group);
             view.Moved += (_, delta) =>
@@ -883,7 +884,121 @@ namespace ProjectManagementBoard
             return (cards, groups);
         }
 
+        /// <summary>+ 그룹: an empty group, or a group saved earlier (with the tools inside it).</summary>
         private void AddGroup()
+        {
+            Editor.Show(new EditRequest("새 그룹", Array.Empty<EditField>(), 0,
+                Save: () => Dispatcher.InvokeAsync(CreateGroup))
+            {
+                Message = "빈 그룹을 만들까요, 아니면 저장해 둔 그룹 파일(*.pmgr)을 안의 관리 툴과 함께 불러올까요?",
+                SaveText = "새 그룹",
+                Discard = () => Dispatcher.InvokeAsync(LoadGroupFile),
+                DiscardText = "불러오기",
+            });
+        }
+
+        private const string GroupFileFilter = "그룹 파일 (*.pmgr)|*.pmgr|모든 파일 (*.*)|*.*";
+
+        /// <summary>The group's save button: writes the group, its nested groups and its tools (with their data) to a *.pmgr.</summary>
+        private void SaveGroupFile(GroupModel group)
+        {
+            var (cards, groups) = MembersOf(group);
+            foreach (var c in cards)
+                if (_views.TryGetValue(c, out var v)) v.CaptureState();   // tools' current data
+
+            string name = string.IsNullOrWhiteSpace(group.Title) ? "그룹" : group.Title.Trim();
+            foreach (var ch in System.IO.Path.GetInvalidFileNameChars()) name = name.Replace(ch, '_');
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "그룹 저장",
+                Filter = GroupFileFilter,
+                DefaultExt = GroupFileData.Extension,
+                AddExtension = true,
+                FileName = name + GroupFileData.Extension,
+                InitialDirectory = ToolDialogFolder(null),
+            };
+            if (dialog.ShowDialog(this) != true) return;
+
+            // everything relative to the group's top-left corner, tools in board z-order
+            T Relative<T>(T model, Action<T, double, double> move) where T : class
+            {
+                var copy = BoardStore.Clone(model);
+                move(copy, -group.X, -group.Y);
+                return copy;
+            }
+            static void MoveGroup(GroupModel g, double dx, double dy) { g.X += dx; g.Y += dy; }
+            static void MoveTool(ToolModel t, double dx, double dy) { t.X += dx; t.Y += dy; t.ToolFile = ""; }
+            var file = new GroupFileData
+            {
+                Group = Relative(group, MoveGroup),
+                Groups = groups.Select(g => Relative(g, MoveGroup)).ToList(),
+                Tools = _cards.Where(cards.Contains).Select(c => Relative(c, MoveTool)).ToList(),
+            };
+            try
+            {
+                BoardStore.SaveGroupFile(dialog.FileName, file);
+            }
+            catch (Exception ex)
+            {
+                ShowToast($"저장하지 못했어요: {ex.Message}", withUndo: false);
+                return;
+            }
+            _lastToolFolder = System.IO.Path.GetDirectoryName(dialog.FileName);
+            ShowToast($"‘{System.IO.Path.GetFileName(dialog.FileName)}’에 그룹을 저장했어요 (관리 툴 {file.Tools.Count}개" +
+                      (file.Groups.Count > 0 ? $", 하위 그룹 {file.Groups.Count}개)" : ")"), withUndo: false);
+        }
+
+        /// <summary>불러오기: places a saved group, with its nested groups and tools, at the next free spot in view.</summary>
+        private void LoadGroupFile()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "그룹 불러오기",
+                Filter = GroupFileFilter,
+                InitialDirectory = ToolDialogFolder(null),
+            };
+            if (dialog.ShowDialog(this) != true) return;
+
+            GroupFileData file;
+            try
+            {
+                file = BoardStore.LoadGroupFile(dialog.FileName);
+            }
+            catch (Exception)
+            {
+                ShowToast("불러오지 못했어요. 올바른 그룹 파일이 아니에요.", withUndo: false);
+                return;
+            }
+
+            var root = file.Group;
+            var obstacles = CardRects().Concat(_groups.Select(g => new Rect(g.X, g.Y, g.Width, g.Height)));
+            var pos = FindFreeSlot(root.Width, root.Height, obstacles);
+            root.X = pos.X;
+            root.Y = pos.Y;
+            foreach (var g in file.Groups) { g.X += pos.X; g.Y += pos.Y; }
+            foreach (var t in file.Tools) { t.X += pos.X; t.Y += pos.Y; t.ToolFile = ""; }
+
+            foreach (var g in file.Groups.Prepend(root))
+            {
+                _groups.Add(g);
+                AddGroupView(g, TimeSpan.Zero);
+            }
+            for (int i = 0; i < file.Tools.Count; i++)
+            {
+                _cards.Add(file.Tools[i]);
+                AddView(file.Tools[i], TimeSpan.FromMilliseconds(120 + 60 * i));   // staggered, after the box appears
+            }
+            RevealOnBoard(new Rect(root.X, root.Y, root.Width, root.Height));
+            UpdateGroupCounts();
+            UpdateChrome();
+            _lastToolFolder = System.IO.Path.GetDirectoryName(dialog.FileName);
+
+            int missing = file.Tools.Count(t => t.ToolId.Length > 0 && _catalog.Find(t.ToolId) == null);
+            ShowToast($"‘{System.IO.Path.GetFileName(dialog.FileName)}’ 그룹을 불러왔어요 (관리 툴 {file.Tools.Count}개)" +
+                      (missing > 0 ? $" · 설치되지 않은 툴 {missing}개" : ""), withUndo: false);
+        }
+
+        private void CreateGroup()
         {
             var group = new GroupModel();
             var obstacles = CardRects().Concat(_groups.Select(g => new Rect(g.X, g.Y, g.Width, g.Height)));
