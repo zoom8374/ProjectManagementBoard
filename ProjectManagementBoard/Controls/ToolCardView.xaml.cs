@@ -46,6 +46,9 @@ namespace ProjectManagementBoard.Controls
         /// <summary>The copy button was pressed (the host keeps the copied 알고리즘 for Ctrl+V).</summary>
         public event EventHandler? CopyRequested;
 
+        /// <summary>The save button was pressed: the host writes this tool to its own file (state captured first).</summary>
+        public event EventHandler? SaveToolRequested;
+
         /// <summary>Raised on any press inside the card, so the host can bring it to front.</summary>
         public event EventHandler? Activated;
 
@@ -101,6 +104,9 @@ namespace ProjectManagementBoard.Controls
         /// <summary>Creates the tool named by <see cref="ToolModel.ToolId"/> and docks its view; a failing tool never takes the board down.</summary>
         private void DockTool(ToolCatalog catalog)
         {
+            // an empty card has nothing of its own to save
+            SaveToolButton.Visibility = Model.ToolId.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+            SaveToolTipText.Text = $"관리 툴 개별 저장 (*{catalog.FileExtensionFor(Model.ToolId)})";
             if (Model.ToolId.Length == 0) return;
             var tool = catalog.Find(Model.ToolId);
             if (tool == null)
@@ -442,6 +448,12 @@ namespace ProjectManagementBoard.Controls
         private void Delete_Click(object sender, RoutedEventArgs e) => DeleteRequested?.Invoke(this, EventArgs.Empty);
 
         private void Copy_Click(object sender, RoutedEventArgs e) => CopyRequested?.Invoke(this, EventArgs.Empty);
+
+        private void SaveTool_Click(object sender, RoutedEventArgs e)
+        {
+            CaptureState();
+            SaveToolRequested?.Invoke(this, EventArgs.Empty);
+        }
 
         private void CardColor_Click(object sender, RoutedEventArgs e)
         {

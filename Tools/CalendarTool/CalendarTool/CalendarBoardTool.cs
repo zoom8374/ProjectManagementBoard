@@ -8,7 +8,7 @@ namespace CalendarTool
     /// Entry point the board discovers in Plugins\CalendarTool\CalendarTool.dll. Port of the standalone ProjectCalendar
     /// (goals, coloured dates, done checks, memos, schedule sheets) without server, login, file, opacity or window features.
     /// </summary>
-    public class CalendarBoardTool : IBoardTool, IBoardToolDefaultSize
+    public class CalendarBoardTool : IBoardTool, IBoardToolDefaultSize, IBoardToolFileExtension
     {
         public string Id => "calendar";               // saved in project files: never change it
         public string DisplayName => "캘린더";
@@ -17,6 +17,8 @@ namespace CalendarTool
         // The month grid (8 weeks) plus the goal panel need room; the board's default card would be cramped.
         public double DefaultWidth => 1100;
         public double DefaultHeight => 760;
+
+        public string FileExtension => ".pmcd";      // individually saved files ('관리 툴 개별 저장'); never change it
 
         public IBoardToolInstance CreateInstance() => new Instance();
 

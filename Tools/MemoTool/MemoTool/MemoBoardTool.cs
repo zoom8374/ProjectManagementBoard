@@ -3,11 +3,13 @@ using ProjectManagementBoard.Contracts;
 namespace MemoTool
 {
     /// <summary>Entry point the board discovers in Plugins\MemoTool\MemoTool.dll.</summary>
-    public class MemoBoardTool : IBoardTool
+    public class MemoBoardTool : IBoardTool, IBoardToolFileExtension
     {
         public string Id => "memo";                 // saved in project files: never change it
         public string DisplayName => "메모장";
         public string Description => "간단한 텍스트 메모";
+
+        public string FileExtension => ".pmmo";      // individually saved files ('관리 툴 개별 저장'); never change it
 
         public IBoardToolInstance CreateInstance() => new MemoInstance();
 

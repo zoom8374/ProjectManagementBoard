@@ -522,6 +522,7 @@ namespace ProjectManagementBoard
             };
             view.DeleteRequested += (_, _) => DeleteCard(view);
             view.CopyRequested += (_, _) => CopyCard(card);
+            view.SaveToolRequested += (_, _) => SaveToolFile(card);
             view.EditRequested += (_, request) => Editor.Show(request);
             view.DragMoved += (_, _) => HighlightGroupUnder(view.Model);
             view.Released += (_, _) =>
@@ -556,12 +557,112 @@ namespace ProjectManagementBoard
                 Options = tools.Select(t => t.DisplayName).Append(BlankCardOption).ToList(),
                 Value = tools[0].DisplayName,
             };
-            Editor.Show(new EditRequest("새 관리 툴", new[] { field }, 0,
-                () => CreateCard(tools.FirstOrDefault(t => t.DisplayName == field.Value), at))
-            { SaveText = "추가" });
+            // step 1: which tool → step 2: a new one or one saved on its own (*.pm<tool>)
+            Editor.Show(new EditRequest("새 관리 툴", new[] { field }, 0, () =>
+            {
+                var tool = tools.FirstOrDefault(t => t.DisplayName == field.Value);
+                if (tool == null) CreateCard(null, at);   // 빈 카드: nothing to load
+                else Dispatcher.InvokeAsync(() => AskNewOrLoad(tool, at));
+            })
+            { SaveText = "다음" });
         }
 
-        private void CreateCard(IBoardTool? tool, Point? at)
+        /// <summary>Step 2 of + 새 관리 툴: start the chosen tool empty, or load a tool file saved from its card.</summary>
+        private void AskNewOrLoad(IBoardTool tool, Point? at)
+        {
+            Editor.Show(new EditRequest($"‘{tool.DisplayName}’ 추가", Array.Empty<EditField>(), 0,
+                Save: () => CreateCard(tool, at))
+            {
+                Message = $"새로 시작할까요, 아니면 개별 저장해 둔 ‘{tool.DisplayName}’ 파일(*{_catalog.FileExtensionFor(tool.Id)})을 불러올까요?",
+                SaveText = "새 파일",
+                Discard = () => Dispatcher.InvokeAsync(() => LoadToolFileInto(tool, at)),
+                DiscardText = "불러오기",
+            });
+        }
+
+        /// <summary>Open/save dialog filter for one tool's files, e.g. "캘린더 파일 (*.pmcalendar)".</summary>
+        private string ToolFileFilter(string toolId)
+        {
+            var ext = _catalog.FileExtensionFor(toolId);
+            var name = _catalog.Find(toolId)?.DisplayName ?? toolId;
+            return $"{name} 파일 (*{ext})|*{ext}|모든 파일 (*.*)|*.*";
+        }
+
+        /// <summary>불러오기: picks a file of the chosen tool (its own extension) and adds a card with its data, look and size.</summary>
+        private void LoadToolFileInto(IBoardTool tool, Point? at)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = $"‘{tool.DisplayName}’ 불러오기",
+                Filter = ToolFileFilter(tool.Id),
+                InitialDirectory = ToolDialogFolder(null),
+            };
+            if (dialog.ShowDialog(this) != true) return;
+
+            ToolFileData file;
+            try
+            {
+                file = BoardStore.LoadToolFile(dialog.FileName);
+            }
+            catch (Exception)
+            {
+                ShowToast("불러오지 못했어요. 올바른 관리 툴 파일이 아니에요.", withUndo: false);
+                return;
+            }
+            if (!string.Equals(file.ToolId, tool.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                var owner = _catalog.Find(file.ToolId)?.DisplayName ?? file.ToolId;
+                ShowToast($"‘{owner}’의 파일이에요. ‘{tool.DisplayName}’ 파일을 골라 주세요.", withUndo: false);
+                return;
+            }
+            CreateCard(tool, at, file, dialog.FileName);
+            _lastToolFolder = System.IO.Path.GetDirectoryName(dialog.FileName);
+            ShowToast($"‘{System.IO.Path.GetFileName(dialog.FileName)}’을 불러왔어요", withUndo: false);
+        }
+
+        // Folder of the last tool file saved or loaded, so the next dialog opens there.
+        private string? _lastToolFolder;
+
+        private string ToolDialogFolder(ToolModel? card)
+        {
+            foreach (var dir in new[] { card is { ToolFile.Length: > 0 } ? System.IO.Path.GetDirectoryName(card.ToolFile) : null, _lastToolFolder })
+                if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir)) return dir;
+            return DialogFolder();
+        }
+
+        /// <summary>The card's save button: writes this one tool (data + look) to a file with the tool's own extension, chosen in a dialog (pre-filled with its last file).</summary>
+        private void SaveToolFile(ToolModel card)
+        {
+            string name = string.IsNullOrWhiteSpace(card.Title) ? (_catalog.Find(card.ToolId)?.DisplayName ?? "관리 툴") : card.Title.Trim();
+            foreach (var c in System.IO.Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "관리 툴 개별 저장",
+                Filter = ToolFileFilter(card.ToolId),
+                DefaultExt = _catalog.FileExtensionFor(card.ToolId),
+                AddExtension = true,
+                FileName = (card.ToolFile.Length > 0 ? System.IO.Path.GetFileNameWithoutExtension(card.ToolFile) : name)
+                           + _catalog.FileExtensionFor(card.ToolId),
+                InitialDirectory = ToolDialogFolder(card),
+            };
+            if (dialog.ShowDialog(this) != true) return;
+
+            try
+            {
+                BoardStore.SaveToolFile(dialog.FileName, ToolFileData.From(card));
+            }
+            catch (Exception ex)
+            {
+                ShowToast($"저장하지 못했어요: {ex.Message}", withUndo: false);
+                return;
+            }
+            card.ToolFile = dialog.FileName;
+            _lastToolFolder = System.IO.Path.GetDirectoryName(dialog.FileName);
+            ShowToast($"‘{System.IO.Path.GetFileName(dialog.FileName)}’에 관리 툴을 저장했어요", withUndo: false);
+        }
+
+        /// <param name="file">A loaded tool file: its data, title, colour and size are used instead of the tool's defaults.</param>
+        private void CreateCard(IBoardTool? tool, Point? at, ToolFileData? file = null, string? filePath = null)
         {
             var card = ToolModel.CreateBlank();
             card.ToolId = tool?.Id ?? "";
@@ -570,6 +671,15 @@ namespace ProjectManagementBoard
             {
                 card.Width = size.DefaultWidth;
                 card.Height = size.DefaultHeight;
+            }
+            if (file != null)
+            {
+                card.State = file.State;
+                if (!string.IsNullOrWhiteSpace(file.Title)) card.Title = file.Title;
+                card.CardColor = file.CardColor;
+                card.TitleFontSize = file.TitleFontSize;
+                if (file.Width > 0 && file.Height > 0) { card.Width = file.Width; card.Height = file.Height; }
+                card.ToolFile = filePath ?? "";
             }
             var pos = at is { } p
                 ? new Point(p.X - card.Width / 2, p.Y - 20)
@@ -663,6 +773,7 @@ namespace ProjectManagementBoard
         {
             if (_copiedCardJson == null || BoardStore.DeserializeTool(_copiedCardJson) is not { } card) return;
             if (!string.IsNullOrWhiteSpace(card.Title)) card.Title += " (복사)";
+            card.ToolFile = "";   // a copy is a new tool: its save must not overwrite the original's file
 
             // Under the mouse when it is over the board (so it can be dropped straight into a group),
             // otherwise cascaded next to the original.

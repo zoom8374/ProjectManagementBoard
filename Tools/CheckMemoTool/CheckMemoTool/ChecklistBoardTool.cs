@@ -9,11 +9,13 @@ using ProjectManagementBoard.Contracts;
 namespace CheckMemoTool
 {
     /// <summary>Entry point the board discovers in Plugins\CheckMemoTool\CheckMemoTool.dll. Port of the standalone CheckMemo floating checklist.</summary>
-    public class ChecklistBoardTool : IBoardTool
+    public class ChecklistBoardTool : IBoardTool, IBoardToolFileExtension
     {
         public string Id => "checkmemo";              // saved in project files: never change it
         public string DisplayName => "체크리스트";
         public string Description => "중요도·완료 구분이 있는 체크리스트 (CheckMemo)";
+
+        public string FileExtension => ".pmck";      // individually saved files ('관리 툴 개별 저장'); never change it
 
         public IBoardToolInstance CreateInstance() => new Instance();
 

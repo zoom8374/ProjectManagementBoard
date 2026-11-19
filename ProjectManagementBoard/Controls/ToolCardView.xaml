@@ -31,6 +31,16 @@
                 <Button Style="{StaticResource IconButton}" ToolTip="카드 색상" Click="CardColor_Click">
                     <Ellipse Width="13" Height="13" Fill="{Binding CardColor}" Stroke="White" StrokeThickness="1.5"/>
                 </Button>
+                <!-- Saves just this tool to its own file (extension per tool, e.g. .pmmemo) so it can be loaded when adding a tool; hidden on empty cards -->
+                <Button x:Name="SaveToolButton" Style="{StaticResource IconButton}" Content="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                        Click="SaveTool_Click">
+                    <Button.ToolTip>
+                        <TextBlock>
+                            <Run x:Name="SaveToolTipText" Text="관리 툴 개별 저장" FontWeight="SemiBold"/><LineBreak/>
+                            <Run Text="‘+ 새 관리 툴 → 불러오기’로 다시 쓸 수 있어요" Foreground="#B3FFFFFF"/>
+                        </TextBlock>
+                    </Button.ToolTip>
+                </Button>
                 <Button Style="{StaticResource IconButton}" Content="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="12"
                         ToolTip="관리 툴 복사 (Ctrl+C) · 붙여넣기는 Ctrl+V" Click="Copy_Click"/>
                 <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="11"

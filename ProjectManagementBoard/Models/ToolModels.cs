@@ -106,6 +106,14 @@ namespace ProjectManagementBoard.Models
         /// <summary>The tool's own saved data (<c>IBoardToolInstance.SaveState</c>), refreshed by the card before copy/save.</summary>
         public string State { get => _state; set => SetField(ref _state, value ?? ""); }
 
+        private string _toolFile = "";
+
+        /// <summary>
+        /// The individual tool file (*.pm&lt;tool&gt;, e.g. .pmmemo) this card was loaded from or last saved to; "" = none. The card's save button writes
+        /// back to it. The whole board is still kept in the project file; this only feeds "불러오기" when adding a tool.
+        /// </summary>
+        public string ToolFile { get => _toolFile; set => SetField(ref _toolFile, value ?? ""); }
+
         public string Title { get => _title; set => SetField(ref _title, value ?? ""); }
         public double TitleFontSize { get => _titleFontSize; set => SetField(ref _titleFontSize, value > 0 ? value : DefaultTitleFontSize); }
         public string CardColor { get => _cardColor; set => SetField(ref _cardColor, value ?? DefaultCardColor); }
@@ -115,5 +123,29 @@ namespace ProjectManagementBoard.Models
         public double Height { get => _height; set => SetField(ref _height, value); }
 
         public static ToolModel CreateBlank() => new();
+    }
+
+    /// <summary>
+    /// One management tool saved on its own (JSON; the extension is per tool, see <c>ToolCatalog.FileExtensionFor</c>), so it can be loaded into another board via
+    /// + 새 관리 툴 → (tool) → 불러오기. Holds the tool's data and how its card looked; no position (it lands where it is added).
+    /// </summary>
+    public class ToolFileData
+    {
+        public int Version { get; set; } = 1;
+        /// <summary>Which tool the data belongs to (<c>IBoardTool.Id</c>); loading checks it against the chosen tool.</summary>
+        public string ToolId { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string CardColor { get; set; } = ToolModel.DefaultCardColor;
+        public double TitleFontSize { get; set; } = ToolModel.DefaultTitleFontSize;
+        public double Width { get; set; } = ToolModel.DefaultWidth;
+        public double Height { get; set; } = ToolModel.DefaultHeight;
+        /// <summary>The tool's own data (<c>IBoardToolInstance.SaveState</c>).</summary>
+        public string State { get; set; } = "";
+
+        public static ToolFileData From(ToolModel card) => new()
+        {
+            ToolId = card.ToolId, Title = card.Title, CardColor = card.CardColor, TitleFontSize = card.TitleFontSize,
+            Width = card.Width, Height = card.Height, State = card.State,
+        };
     }
 }

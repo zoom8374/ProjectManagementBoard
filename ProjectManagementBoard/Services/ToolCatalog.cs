@@ -23,6 +23,33 @@ namespace ProjectManagementBoard.Services
 
         public IBoardTool? Find(string id) => _tools.GetValueOrDefault(id);
 
+        /// <summary>
+        /// Extension of a tool's individually saved files: what the tool declares (<see cref="IBoardToolFileExtension"/>, e.g.
+        /// ".pmmo"), otherwise ".pm" + the first two letters of its id. The extension only sorts files in the dialogs;
+        /// loading still checks the tool id stored inside the file.
+        /// </summary>
+        public string FileExtensionFor(string toolId)
+        {
+            if (Find(toolId) is IBoardToolFileExtension { FileExtension: { } declared } && NormalizeExtension(declared) is { } ext)
+                return ext;
+            var letters = new string(toolId.ToLowerInvariant().Where(char.IsLetterOrDigit).Take(2).ToArray());
+            return ".pm" + (letters.Length > 0 ? letters : "x");
+        }
+
+        /// <summary>".pmmo" / "pmmo" → ".pmmo"; null when it is not 1–8 letters or digits.</summary>
+        private static string? NormalizeExtension(string ext)
+        {
+            var body = ext.Trim().TrimStart('.').ToLowerInvariant();
+            return body.Length is >= 1 and <= 8 && body.All(char.IsLetterOrDigit) ? "." + body : null;
+        }
+
+        /// <summary>Reports tools whose file extensions clash (their files could not be told apart by extension).</summary>
+        private void CheckExtensions()
+        {
+            foreach (var clash in _tools.Keys.GroupBy(FileExtensionFor).Where(g => g.Count() > 1))
+                Errors.Add($"관리 툴 파일 확장자 ‘{clash.Key}’가 겹쳐요: {string.Join(", ", clash)}");
+        }
+
         public static ToolCatalog Load()
         {
             var catalog = new ToolCatalog();
@@ -36,6 +63,7 @@ namespace ProjectManagementBoard.Services
             {
                 catalog.Errors.Add($"Plugins 폴더를 읽지 못했어요: {ex.Message}");
             }
+            catalog.CheckExtensions();
             return catalog;
         }
 

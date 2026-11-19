@@ -54,4 +54,14 @@ namespace ProjectManagementBoard.Contracts
         /// <summary>Raised with the change of the card's size in board units (X = width, Y = height; negative shrinks).</summary>
         event EventHandler<Vector>? ResizeRequested;
     }
+
+    /// <summary>
+    /// Optional, implemented next to <see cref="IBoardTool"/>: the extension of this tool's individually saved files, e.g. ".pmmo".
+    /// Keep it short (3–4 letters after the dot) and different from every other tool's, since the extension is how a file shows
+    /// which tool it belongs to. Like <see cref="IBoardTool.Id"/>, never change it once files exist.
+    /// </summary>
+    public interface IBoardToolFileExtension
+    {
+        string FileExtension { get; }
+    }
 }

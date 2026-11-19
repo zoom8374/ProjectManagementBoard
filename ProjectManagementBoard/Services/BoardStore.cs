@@ -37,6 +37,21 @@ namespace ProjectManagementBoard.Services
         public static ProjectFile LoadProject(string path) =>
             JsonSerializer.Deserialize<ProjectFile>(File.ReadAllText(path), Options) ?? throw new InvalidDataException("빈 파일");
 
+        /// <summary>Writes one management tool on its own (*.pm&lt;tool&gt;), through a temp file like the project.</summary>
+        public static void SaveToolFile(string path, ToolFileData file)
+        {
+            var temp = path + ".tmp";
+            File.WriteAllText(temp, JsonSerializer.Serialize(file, Options));
+            File.Move(temp, path, overwrite: true);
+        }
+
+        public static ToolFileData LoadToolFile(string path)
+        {
+            var file = JsonSerializer.Deserialize<ToolFileData>(File.ReadAllText(path), Options) ?? throw new InvalidDataException("빈 파일");
+            if (string.IsNullOrWhiteSpace(file.ToolId)) throw new InvalidDataException("관리 툴 파일이 아니에요");
+            return file;
+        }
+
         private static string SettingsPath => Path.Combine(Folder, "settings.json");
 
         public static AppSettings LoadSettings()
