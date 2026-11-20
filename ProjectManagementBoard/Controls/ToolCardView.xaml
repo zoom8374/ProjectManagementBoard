@@ -28,6 +28,13 @@
                             FontSize="{Binding TitleFontSize}" FontWeight="SemiBold" MinWidth="80" HorizontalAlignment="Left"/>
 
             <StackPanel x:Name="CardActions" Grid.Column="1" Orientation="Horizontal" Opacity="0">
+                <!-- Content font size (not the title): only for tools that implement IBoardToolFontSize -->
+                <StackPanel x:Name="FontButtons" Orientation="Horizontal" Visibility="Collapsed">
+                    <Button Style="{StaticResource IconButton}" Content="&#xE738;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                            ToolTip="내용 글자 작게" Click="FontMinus_Click"/>
+                    <Button Style="{StaticResource IconButton}" Content="&#xE710;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                            ToolTip="내용 글자 크게" Click="FontPlus_Click"/>
+                </StackPanel>
                 <Button Style="{StaticResource IconButton}" ToolTip="카드 색상" Click="CardColor_Click">
                     <Ellipse Width="13" Height="13" Fill="{Binding CardColor}" Stroke="White" StrokeThickness="1.5"/>
                 </Button>

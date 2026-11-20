@@ -64,4 +64,15 @@ namespace ProjectManagementBoard.Contracts
     {
         string FileExtension { get; }
     }
+
+    /// <summary>
+    /// Optional, implemented next to <see cref="IBoardToolInstance"/>: the tool's content (everything but the card title) can
+    /// change its font size. The card then shows − / + buttons that call <see cref="ChangeFontSize"/>; the tool keeps the
+    /// size in its own <see cref="IBoardToolInstance.SaveState"/> data.
+    /// </summary>
+    public interface IBoardToolFontSize
+    {
+        /// <summary>Makes the content font one step bigger (+1) or smaller (-1); the tool clamps to its own limits.</summary>
+        void ChangeFontSize(int step);
+    }
 }

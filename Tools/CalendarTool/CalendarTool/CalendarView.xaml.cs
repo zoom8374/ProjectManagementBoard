@@ -127,6 +127,13 @@ namespace CalendarTool
             SetSchedule(data.ScheduleOpen, animate: false);   // a saved card already has the schedule's height
             SizeChanged += (_, _) => FollowCardSize();
 
+            // text scale: every element that loads later (cells, goal rows, tabs, ...) is scaled from its Loaded event
+            AddHandler(FrameworkElement.LoadedEvent, new RoutedEventHandler((_, e) =>
+            {
+                if (e.OriginalSource is DependencyObject d && !FontScaler.IsInside(d, ScheduleHost)) FontScaler.ApplyOne(d, data.FontScale);
+            }), handledEventsToo: true);
+            Loaded += (_, _) => ApplyFontScale();
+
             startDate = StartFor(DateTime.Today);
             RefreshCells();
             UpdateSelection();
@@ -143,6 +150,17 @@ namespace CalendarTool
             Save();
             return data;
         }
+
+        // ───────────────────────── text size ─────────────────────────
+
+        /// <summary>One step bigger (+1) / smaller (-1) for the calendar's text; the Schedule table has its own control.</summary>
+        public void ChangeFontSize(int step)
+        {
+            data.FontScale = FontScaler.Clamp(data.FontScale + step * FontScaler.Step);
+            ApplyFontScale();
+        }
+
+        void ApplyFontScale() => FontScaler.Apply(Root, data.FontScale, d => ReferenceEquals(d, ScheduleHost));
 
         // ───────────────────────── schedule sheets (tabs) ─────────────────────────
 
@@ -524,7 +542,8 @@ namespace CalendarTool
             ScheduleBtn.Foreground = new SolidColorBrush(open ? AccentColor : Color.FromRgb(0xC9, 0xD1, 0xE3));
             if (open && sched == null)
             {
-                sched = new SchedulePanel(this);
+                sched = new SchedulePanel(this, data.ScheduleFontScale);
+                sched.FontScaleChanged += s => data.ScheduleFontScale = s;
                 sched.CloseRequested += () => SetSchedule(false, animate: true);
                 ScheduleHost.Child = sched;
                 // once the panel is laid out its real chrome height is known: correct the estimate (settled sizes only)

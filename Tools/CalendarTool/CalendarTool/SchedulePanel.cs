@@ -34,7 +34,8 @@ namespace CalendarTool
     public class SchedulePanel : Border
     {
         const double RowH = 38, MonthH = 24, DayH = 28, BarH = 20;
-        const double FixedCols = 244;   // days + start + end + status columns; the task column takes the rest of the table
+        static readonly double[] FixedColBase = { 48, 90, 90, 36 };   // days, start, end, status (widths at scale 1; they grow with the table font)
+        double FixedCols => FixedColBase.Sum() * fontScale;           // the task column takes the rest of the table
         static readonly IEasingFunction Ease = new CubicEase { EasingMode = EasingMode.EaseOut };
 
         static readonly Color Accent = Color.FromRgb(0x7C, 0x9C, 0xFF);
@@ -74,8 +75,31 @@ namespace CalendarTool
 
         public double TaskRowHeight => RowH;
 
-        public SchedulePanel(FrameworkElement host)
+        double fontScale = 1;
+
+        /// <summary>The table's own text scale changed (− / + in the top bar); the calendar stores it.</summary>
+        public event Action<double>? FontScaleChanged;
+
+        void ChangeFont(int step)
         {
+            double s = FontScaler.Clamp(fontScale + step * FontScaler.Step);
+            if (Math.Abs(s - fontScale) < 0.001) return;
+            fontScale = s;
+            FontScaler.Apply(this, fontScale);
+            if (!userSized && data != null) nameW = AutoFitName(data.Rows);
+            ApplyLeftWidth();   // the table columns grow / shrink with the text
+            FontScaleChanged?.Invoke(fontScale);
+        }
+
+        public SchedulePanel(FrameworkElement host, double initialFontScale = 1)
+        {
+            fontScale = FontScaler.Clamp(initialFontScale);
+            // elements built later (rows, day headers, bars) are scaled one by one as they load
+            AddHandler(FrameworkElement.LoadedEvent, new RoutedEventHandler((_, e) =>
+            {
+                if (e.OriginalSource is DependencyObject d) FontScaler.ApplyOne(d, fontScale);
+            }), handledEventsToo: true);
+
             TextElement.SetForeground(this, new SolidColorBrush(Color.FromRgb(0xF2, 0xF5, 0xFA)));
 
             var muted = new SolidColorBrush(Color.FromRgb(0x99, 0xA3, 0xB8));
@@ -93,6 +117,10 @@ namespace CalendarTool
             zoom.Children.Add(dayChip); zoom.Children.Add(weekChip);
             zoom.Children.Add(new Border { Width = 8 });
             zoom.Children.Add(todayBtn);
+            zoom.Children.Add(new Border { Width = 8 });
+            var fontMinus = Chip("−", () => ChangeFont(-1)); fontMinus.ToolTip = "표 글자 작게";
+            var fontPlus = Chip("+", () => ChangeFont(1)); fontPlus.ToolTip = "표 글자 크게";
+            zoom.Children.Add(fontMinus); zoom.Children.Add(fontPlus);
 
             var close = new Button { Style = (Style)host.FindResource("CloseBtn"), Content = "", ToolTip = "Schedule 닫기", FontSize = 15 };
             close.Click += (_, _) => CloseRequested?.Invoke();
@@ -245,7 +273,7 @@ namespace CalendarTool
 
         void AddCells(Grid g, string[] texts, bool header)
         {
-            double[] widths = { nameW, 48, 80, 80, 36 };
+            double[] widths = { nameW, FixedColBase[0] * fontScale, FixedColBase[1] * fontScale, FixedColBase[2] * fontScale, FixedColBase[3] * fontScale };
             for (int i = 0; i < widths.Length; i++) g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(widths[i] + (i == 4 ? 0 : 0)) });
             for (int i = 0; i < texts.Length; i++)
             {
@@ -269,8 +297,14 @@ namespace CalendarTool
             var face = new Typeface(TextElement.GetFontFamily(this), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
             double max = 0;
             foreach (var r in rows)
-                max = Math.Max(max, new FormattedText(r.Name, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, face, 13, Brushes.White, ppd).Width);
+                max = Math.Max(max, new FormattedText(r.Name, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, face, 13 * fontScale, Brushes.White, ppd).Width);
             return Math.Clamp(Math.Ceiling(max) + 42, 128, 720);   // + colour dot and paddings
+        }
+
+        void SetColumns(Grid g)
+        {
+            g.ColumnDefinitions[0].Width = new GridLength(nameW);
+            for (int i = 0; i < FixedColBase.Length; i++) g.ColumnDefinitions[i + 1].Width = new GridLength(FixedColBase[i] * fontScale);
         }
 
         void ApplyLeftWidth()
@@ -278,11 +312,11 @@ namespace CalendarTool
             double total = nameW + FixedCols;
             leftCol.Width = new GridLength(total);
             leftHeader.Width = total;
-            leftHeader.ColumnDefinitions[0].Width = new GridLength(nameW);
+            SetColumns(leftHeader);
             foreach (var r in leftRowGrids)
             {
                 r.Width = total;
-                r.ColumnDefinitions[0].Width = new GridLength(nameW);
+                SetColumns(r);
             }
         }
 

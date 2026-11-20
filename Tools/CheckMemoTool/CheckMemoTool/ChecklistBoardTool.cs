@@ -19,8 +19,13 @@ namespace CheckMemoTool
 
         public IBoardToolInstance CreateInstance() => new Instance();
 
-        private sealed class Instance : IBoardToolInstance
+        private sealed class Instance : IBoardToolInstance, IBoardToolFontSize
         {
+            public void ChangeFontSize(int step)
+            {
+                if (step > 0) _vm.Settings.IncreaseFont(); else if (step < 0) _vm.Settings.DecreaseFont();
+            }
+
             private ChecklistViewModel _vm = new ChecklistViewModel(new AppSettingsViewModel());
             private ChecklistView _view;
 

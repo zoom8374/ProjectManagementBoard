@@ -120,6 +120,7 @@ namespace ProjectManagementBoard.Controls
                 if (Model.State.Length > 0) _instance.LoadState(Model.State);
                 if (_instance is IBoardToolResizeRequest resizable) resizable.ResizeRequested += OnToolResizeRequested;
                 ToolHost.Child = _instance.View;
+                FontButtons.Visibility = _instance is IBoardToolFontSize ? Visibility.Visible : Visibility.Collapsed;
                 Placeholder.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
@@ -129,6 +130,10 @@ namespace ProjectManagementBoard.Controls
                 PlaceholderText.Text = $"관리 툴을 불러오지 못했어요\n{ex.GetBaseException().Message}";
             }
         }
+
+        private void FontMinus_Click(object sender, RoutedEventArgs e) => (_instance as IBoardToolFontSize)?.ChangeFontSize(-1);
+
+        private void FontPlus_Click(object sender, RoutedEventArgs e) => (_instance as IBoardToolFontSize)?.ChangeFontSize(1);
 
         /// <summary>The docked tool asked for a bigger/smaller card (e.g. CalendarTool opening its Schedule panel); eased like any resize.</summary>
         private void OnToolResizeRequested(object? sender, Vector delta)

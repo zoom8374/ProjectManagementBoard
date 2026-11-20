@@ -121,6 +121,10 @@ namespace CalendarTool
         /// <summary>Whether the Schedule (Gantt) panel is open under the calendar. The card's saved height already includes it.</summary>
         public bool ScheduleOpen { get; set; }
 
+        /// <summary>Text scale of the calendar (1 = original sizes) and, separately, of the Schedule table; see <see cref="FontScaler"/>.</summary>
+        public double FontScale { get; set; } = 1;
+        public double ScheduleFontScale { get; set; } = 1;
+
         /// <summary>Calendar background colour (#RRGGBB), picked with the colour dot in the header.</summary>
         public string BgHex { get; set; } = "#151925";
 
@@ -134,6 +138,8 @@ namespace CalendarTool
                 s.Goals ??= new(); s.Days ??= new(); s.Days2 ??= new(); s.Done ??= new(); s.Notes ??= new();
             }
             ActiveSheet = Math.Clamp(ActiveSheet, 0, Sheets.Count - 1);
+            FontScale = FontScaler.Clamp(FontScale);
+            ScheduleFontScale = FontScaler.Clamp(ScheduleFontScale);
             return this;
         }
 

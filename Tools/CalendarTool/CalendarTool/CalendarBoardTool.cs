@@ -22,8 +22,10 @@ namespace CalendarTool
 
         public IBoardToolInstance CreateInstance() => new Instance();
 
-        private sealed class Instance : IBoardToolInstance, IBoardToolResizeRequest
+        private sealed class Instance : IBoardToolInstance, IBoardToolResizeRequest, IBoardToolFontSize
         {
+            public void ChangeFontSize(int step) => _view.ChangeFontSize(step);
+
             private static readonly JsonSerializerOptions Options = new();
             private CalendarView _view = null!;
 
